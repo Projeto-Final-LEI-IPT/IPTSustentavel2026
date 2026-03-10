@@ -41,7 +41,7 @@ app.use('/api/notificacoes', require('./routes/notificacoes'));
 const PORT = process.env.PORT || 3001;
 //Sincronização da Base de Dados e Inicialização do Servidor
 //Sincroniza os modelos Sequelize com a base de dados
-db.sequelize.sync({ force: false }).then(() => {
+db.sequelize.sync({ alter: true }).then(() => {
   //Inicia o servidor na porta especificada.
   app.listen(PORT, () => {
     //Imprime uma mensagem na consola indicando que o servidor está a funcionar e em qual porta.

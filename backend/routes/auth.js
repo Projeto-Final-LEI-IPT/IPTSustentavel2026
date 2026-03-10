@@ -26,7 +26,7 @@ router.post('/login', async (req, res) => {
     if (!validPassword) return res.status(401).send('Credenciais inválidas');
     // Gera um token JWT com os dados do utilizador
     const token = jwt.sign(
-      { id: user.id, email: user.email }, // Payload do token (dados do utilizador)
+      { id: user.id, email: user.email, tipo_utilizador_id: user.tipo_utilizador_id }, // Payload do token (dados do utilizador)
       process.env.JWT_SECRET, // Chave secreta para assinatura do token
       { expiresIn: '1w' } // Token expira em 1 semana
     );
