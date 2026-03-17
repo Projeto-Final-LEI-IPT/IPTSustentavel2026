@@ -20,6 +20,10 @@ router.post('/login', async (req, res) => {
     const user = await db.Utilizador.findOne({ where: { email } });
     // Se não encontrar o utilizador, retorna erro 401 (Não Autorizado)
     if (!user) return res.status(401).send('Credenciais inválidas');
+    //Verificar se a conta está ativa
+    if (user.ativo === false) {
+      return res.status(403).send('A sua conta foi desativada por um administrador.');
+    }
     // Verifica se a password fornecida corresponde à hash guardada
     const validPassword = await bcrypt.compare(password, user.password);
     // Se a password não corresponder, retorna erro 401

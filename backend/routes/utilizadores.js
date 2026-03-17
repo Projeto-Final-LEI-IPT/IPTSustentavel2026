@@ -2,6 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const authenticateToken = require('../middleware/auth');
+const { isAdmin } = require('../middleware/roleCheck');
 const db = require('../models');
 
 // GET todos os utilizadores
@@ -106,27 +107,54 @@ router.put('/:id', authenticateToken, async (req, res) => {
   }
 });
 
-// DELETE apagar utilizador
-// Rota para apagar um utilizador (requer autenticação)
-router.delete('/:id', authenticateToken, async (req, res) => {
+// PATCH para desativar utilizador
+// Rota para desativar um utilizador (requer autenticação),
+router.patch('/:id/deactivate', authenticateToken, isAdmin, async (req, res) => {
   const id = req.params.id;
+  
   try {
-    // Apaga o utilizador e obtém o número de linhas afetadas
-    const numLinhasAfetadas = await db.Utilizador.destroy({
-      where: { id: id }
-    });
-    // Verifica se a eliminação foi bem-sucedida
-    if (numLinhasAfetadas === 1) {
-      res.send({ message: "Utilizador apagado com sucesso" });
-    } else {
-      res.status(404).send({
-        message: `Não foi possível apagar o utilizador com id=${id}`
-      });
+    // 1. Desativar o Utilizador
+    const [numLinhasAfetadas] = await db.Utilizador.update(
+      { ativo: false }, 
+      { where: { id: id } }
+    );
+
+    if (numLinhasAfetadas === 0) {
+      return res.status(404).send({ message: "Utilizador não encontrado." });
     }
+
+    // 2. Apagar os anúncios (Artigos) deste utilizador
+    await db.Artigo.destroy({
+      where: { utilizador_id: id } 
+    });
+
+    res.send({ 
+      message: "Utilizador desativado e anúncios removidos. As mensagens foram preservadas." 
+    });
   } catch (error) {
     res.status(500).send({
-      message: `Não foi possível apagar o utilizador com id=${id}`
+      message: "Erro ao processar a desativação do utilizador e anúncios."
     });
+  }
+});
+
+//Rota para ativar um utilizador (requer autenticação e privilégios de admin)
+// PATCH /api/utilizadores/:id/activate
+router.patch('/:id/activate', authenticateToken, isAdmin, async (req, res) => {
+  const id = req.params.id; //
+  try {
+    const [numLinhasAfetadas] = await db.Utilizador.update(
+      { ativo: true }, 
+      { where: { id: id } }
+    ); //
+
+    if (numLinhasAfetadas === 1) {
+      res.send({ message: "Utilizador reativado com sucesso!" });
+    } else {
+      res.status(404).send({ message: "Utilizador não encontrado." }); //
+    }
+  } catch (error) {
+    res.status(500).send({ message: "Erro ao reativar utilizador." });
   }
 });
 

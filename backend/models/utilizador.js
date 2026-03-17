@@ -25,6 +25,11 @@ module.exports = (sequelize, DataTypes) => {
     password: {
       type: DataTypes.STRING,
       allowNull: false
+    },
+    ativo: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: true, // Por padrão, novos users estão ativos
+      allowNull: false
     }
   }
   , {
