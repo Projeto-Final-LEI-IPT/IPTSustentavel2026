@@ -1,22 +1,35 @@
-// Este código importa a biblioteca axios, que é utilizada para fazer pedidos HTTP
+// Importa a biblioteca axios para fazer os pedidos HTTP
 import axios from 'axios';
+// Importa o AsyncStorage para substituir o localStorage da Web
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Cria uma instância do axios com uma URL base definida para as chamadas à API
+// Cria a instância do Axios com o endereço do teu servidor
 const api = axios.create({
-  baseURL: 'http://localhost:3001/api',
+  baseURL: 'http://IP do computador:3001/api', 
+  timeout: 10000, // Tempo limite de 10 segundos
 });
 
-// Adiciona um interceptor que atua em todos os pedidos antes de serem enviados
-api.interceptors.request.use(config => {
-  // Obtém o token de autenticação e guarda numa variavel local do browser
-  const token = localStorage.getItem('token');
-  // Se existir um token, adiciona-o aos cabeçalhos do pedido como um token Bearer
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+// Interceptor que adiciona o Token automaticamente antes de cada pedido
+api.interceptors.request.use(
+  async (config) => {
+    try {
+      // Procura o token de autenticação guardado no armazenamento do telemóvel
+      const token = await AsyncStorage.getItem('token'); 
+      // Se o token existir, adiciona-o ao cabeçalho Authorization como Bearer
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+    } catch (error) {
+      console.error('Erro ao ir buscar o token no AsyncStorage:', error);
+    }
+    
+    // Devolve a configuração para o Axios avançar com o pedido
+    return config;
+  },
+  (error) => {
+    // Caso ocorra algum erro no envio do pedido
+    return Promise.reject(error);
   }
-  // Devolve a configuração atualizada para continuar com o pedido
-  return config;
-});
+);
 
-// Exporta a instância da API configurada para ser utilizada noutros ficheiros
 export default api;
