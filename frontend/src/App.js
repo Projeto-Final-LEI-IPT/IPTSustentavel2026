@@ -5,8 +5,8 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage'; // Substitui o localStorage
 
 // Importação dos ecrãs 
-import LoginScreen from './src/screens/LoginScreen';
-import MainDashboard from './src/screens/MainDashboard';
+import LoginScreen from './screens/loginScreen';
+import MainDashboard from './screens/mainDashboard';
 
 const Stack = createNativeStackNavigator();
 

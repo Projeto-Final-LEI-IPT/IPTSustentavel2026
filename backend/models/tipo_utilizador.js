@@ -3,7 +3,7 @@ module.exports = (sequelize, DataTypes) => {
   const TipoUtilizador = sequelize.define('TIPO_UTILIZADOR', {
     tipo: {
       // Foi Adicionado o ADMINISTRADOR à lista de valores permitidos
-      type: DataTypes.ENUM('ESTUDANTE', 'DOCENTE', 'FUNCIONARIO', 'ADMINISTRADOR'),
+      type: DataTypes.ENUM('UTILIZADOR','ADMINISTRADOR'),
       allowNull: false,
       unique: true
     }

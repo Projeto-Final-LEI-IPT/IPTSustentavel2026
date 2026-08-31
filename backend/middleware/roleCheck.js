@@ -2,8 +2,8 @@
 
 const isAdmin = (req, res, next) => {
   // O middleware 'authenticateToken' já colocou os dados do user em req.user
-  // Agora verificamos se o tipo_utilizador_id corresponde ao ADMINISTRADOR (ID 4)
-  if (req.user && req.user.tipo_utilizador_id === 4) {
+  // Agora verificamos se o tipo_utilizador_id corresponde ao ADMINISTRADOR (ID 2)
+  if (req.user && req.user.tipo_utilizador_id === 2) {
     next(); // É admin, pode passar!
   } else {
     // 403 Forbidden: Ele sabe quem és, mas tu não tens "pedigree" para aqui estar
