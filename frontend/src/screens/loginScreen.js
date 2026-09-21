@@ -13,7 +13,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from '../services/api';
 
-export default function LoginScreen({ setIsAuthenticated, setUserTypeId }) {
+export default function LoginScreen({ onLoginSuccess }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
@@ -23,17 +23,24 @@ export default function LoginScreen({ setIsAuthenticated, setUserTypeId }) {
       return;
     }
     try {
-      const response = await api.post('/auth/login', { email, password });
+      // Aplica .trim() para remover espaços acidentais do teclado
+      const response = await api.post('/auth/login', { 
+        email: email.trim().toLowerCase(), 
+        password: password.trim() 
+      });
       const { token, userId, userTypeId } = response.data;
 
       await AsyncStorage.setItem('token', token);
       await AsyncStorage.setItem('userId', userId.toString());
-      await AsyncStorage.setItem('userTypeId', userTypeId.toString());
+      if (userTypeId) {
+        await AsyncStorage.setItem('userTypeId', userTypeId.toString());
+      }
 
-      setUserTypeId(userTypeId.toString());
-      setIsAuthenticated(true);
+      if (onLoginSuccess) {
+        onLoginSuccess();
+      }
     } catch (error) {
-      Alert.alert('Erro no Login', error.response?.data?.message || 'Credenciais inválidas.');
+      Alert.alert('Erro no Login', error.response?.data || 'Credenciais inválidas.');
     }
   };
 
@@ -60,7 +67,7 @@ export default function LoginScreen({ setIsAuthenticated, setUserTypeId }) {
         <View style={styles.formGroup}>
           <TextInput
             style={styles.searchInput}
-            placeholder="Email institucional"
+            placeholder="Email"
             placeholderTextColor="#666"
             value={email}
             onChangeText={setEmail}

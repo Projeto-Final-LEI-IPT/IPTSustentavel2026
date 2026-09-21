@@ -1,0 +1,501 @@
+import React, { useState, useEffect, useCallback } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  FlatList,
+  Image,
+  ActivityIndicator,
+  RefreshControl,
+  StatusBar,
+  Alert
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Ionicons } from '@expo/vector-icons';
+import api from '../services/api';
+
+export default function HomeScreen({ navigation, onLogout }) {
+  // Estados principais de dados
+  const [artigos, setArtigos] = useState([]);
+  const [categorias, setCategorias] = useState([]);
+  const [currentUserId, setCurrentUserId] = useState(null);
+
+  // Estados de filtros e pesquisa
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [selectedCondition, setSelectedCondition] = useState(null);
+
+  // Controlo de paginação e carregamento
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+
+  // Função para efetuar logout e limpar sessão
+  const handleLogout = useCallback(() => {
+    Alert.alert(
+      'Terminar Sessão',
+      'Tem a certeza de que deseja sair?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Sair',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              // 1. Limpa os dados de autenticação locais
+              await AsyncStorage.multiRemove(['token', 'userId', 'user']);
+
+              // 2. Altera o estado do App.js para desmontar o Main e montar o Login
+              if (onLogout) {
+                onLogout();
+              }
+            } catch (error) {
+              console.error('Erro ao terminar sessão:', error);
+            }
+          }
+        }
+      ]
+    );
+  }, [onLogout]);
+
+  // Configurar o botão de Logout no cabeçalho do ecrã
+  useEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <TouchableOpacity
+          onPress={handleLogout}
+          style={{ marginRight: 16 }}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="log-out-outline" size={24} color="#ffffff" />
+        </TouchableOpacity>
+      ),
+    });
+  }, [navigation, handleLogout]);
+
+  // Carregar ID do utilizador autenticado
+  useEffect(() => {
+    const getUserId = async () => {
+      const id = await AsyncStorage.getItem('userId');
+      if (id) setCurrentUserId(id.toString());
+    };
+    getUserId();
+  }, []);
+
+  // 1. Carregar Categorias
+  const fetchCategorias = async () => {
+    try {
+      const response = await api.get('/categorias');
+      setCategorias(response.data || []);
+    } catch (error) {
+      console.error('Erro ao carregar categorias:', error);
+    }
+  };
+
+  // 2. Carregar Artigos
+  const fetchArtigos = useCallback(async (pageNumber = 1, shouldAppend = false) => {
+    try {
+      if (pageNumber === 1 && !shouldAppend) setLoading(true);
+
+      const params = {
+        include: ['fotos', 'categoria'],
+        page: pageNumber,
+        limit: 6,
+        disponivel: true
+      };
+
+      if (searchTerm.trim()) params.titulo = searchTerm.trim();
+      if (selectedCategory) params.categoria_id = selectedCategory;
+      if (selectedCondition) params.estado = selectedCondition;
+
+      const response = await api.get('/artigos', { params });
+
+      const newArticles = response.data?.artigos || [];
+      const totalP = response.data?.pagination?.totalPages || 1;
+
+      setTotalPages(totalP);
+      setPage(pageNumber);
+
+      if (shouldAppend) {
+        setArtigos(prev => [...prev, ...newArticles]);
+      } else {
+        setArtigos(newArticles);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar artigos:', error);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, [searchTerm, selectedCategory, selectedCondition]);
+
+  useEffect(() => {
+    fetchCategorias();
+    fetchArtigos(1, false);
+  }, [fetchArtigos]);
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    fetchArtigos(1, false);
+  };
+
+  const handleLoadMore = () => {
+    if (!loading && page < totalPages) {
+      fetchArtigos(page + 1, true);
+    }
+  };
+
+  const toggleCondition = (cond) => {
+    setSelectedCondition(prev => (prev === cond ? null : cond));
+  };
+
+  const toggleCategory = (catId) => {
+    setSelectedCategory(prev => (prev === catId ? null : catId));
+  };
+
+  const renderArticleCard = ({ item }) => {
+    const isOwner = currentUserId && item.utilizador_id?.toString() === currentUserId;
+    const fotoUrl = item.fotos?.[0]?.caminho_foto;
+    
+    const imageUri = fotoUrl?.startsWith('http')
+      ? fotoUrl
+      : fotoUrl
+      ? `${api.defaults.baseURL.replace('/api', '')}/${fotoUrl}`
+      : null;
+
+    return (
+      <TouchableOpacity
+        style={styles.card}
+        activeOpacity={0.85}
+        onPress={() => navigation.navigate('ArticleDetail', { article: item })}
+      >
+        {imageUri ? (
+          <Image source={{ uri: imageUri }} style={styles.cardImage} resizeMode="cover" />
+        ) : (
+          <View style={[styles.cardImage, styles.noImageContainer]}>
+            <Ionicons name="image-outline" size={40} color="#888" />
+            <Text style={styles.noImageText}>Sem imagem</Text>
+          </View>
+        )}
+
+        <View style={styles.cardContent}>
+          <View style={styles.cardHeader}>
+            <Text style={styles.cardTitle} numberOfLines={1}>
+              {item.titulo}
+            </Text>
+            {isOwner ? (
+              <TouchableOpacity onPress={() => navigation.navigate('EditArticle', { article: item })}>
+                <Ionicons name="pencil" size={18} color="#007bff" />
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                onPress={() =>
+                  navigation.navigate('Chat', {
+                    recipientId: item.utilizador_id,
+                    articleId: item.id,
+                    articleTitle: item.titulo
+                  })
+                }
+              >
+                <Ionicons name="chatbubble-ellipses-outline" size={18} color="#28a745" />
+              </TouchableOpacity>
+            )}
+          </View>
+
+          <Text style={styles.cardCategory}>
+            {item.categoria?.nome || 'Sem categoria'}
+          </Text>
+
+          <View style={styles.badgesRow}>
+            <View style={[styles.badge, item.estado === 'Novo' ? styles.badgeGreen : styles.badgeOrange]}>
+              <Text style={styles.badgeText}>{item.estado || 'Usado'}</Text>
+            </View>
+            <View style={[styles.badge, item.disponivel ? styles.badgeAvailable : styles.badgeUnavailable]}>
+              <Text style={styles.badgeText}>{item.disponivel ? 'Disponível' : 'Indisponível'}</Text>
+            </View>
+          </View>
+        </View>
+      </TouchableOpacity>
+    );
+  };
+
+  return (
+    <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
+      <StatusBar barStyle="light-content" backgroundColor="#2e7d32" />
+
+      {/* 1. Barra de Pesquisa */}
+      <View style={styles.searchSection}>
+        <View style={styles.searchBox}>
+          <Ionicons name="search" size={20} color="#777" style={styles.searchIcon} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Pesquisar artigos..."
+            placeholderTextColor="#888"
+            value={searchTerm}
+            onChangeText={setSearchTerm}
+            onSubmitEditing={() => fetchArtigos(1, false)}
+            returnKeyType="search"
+            maxLength={30}
+          />
+          {searchTerm.length > 0 && (
+            <TouchableOpacity onPress={() => setSearchTerm('')} style={styles.clearButton}>
+              <Ionicons name="close-circle" size={18} color="#888" />
+            </TouchableOpacity>
+          )}
+        </View>
+      </View>
+
+      {/* 2. Carrossel Horizontal de Categorias */}
+      <View style={styles.categoriesSection}>
+        <FlatList
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          data={categorias}
+          keyExtractor={item => item.id.toString()}
+          contentContainerStyle={styles.categoriesList}
+          renderItem={({ item }) => {
+            const isActive = selectedCategory === item.id;
+            return (
+              <TouchableOpacity
+                style={[styles.categoryChip, isActive && styles.categoryChipActive]}
+                onPress={() => toggleCategory(item.id)}
+              >
+                <Text style={[styles.categoryChipText, isActive && styles.categoryChipTextActive]}>
+                  {item.nome}
+                </Text>
+              </TouchableOpacity>
+            );
+          }}
+        />
+      </View>
+
+      {/* 3. Filtro Rápido de Condição (Novo / Usado) */}
+      <View style={styles.conditionRow}>
+        <TouchableOpacity
+          style={[styles.conditionChip, selectedCondition === 'Novo' && styles.conditionChipActive]}
+          onPress={() => toggleCondition('Novo')}
+        >
+          <Text style={[styles.conditionText, selectedCondition === 'Novo' && styles.conditionTextActive]}>
+            Novo
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.conditionChip, selectedCondition === 'Usado' && styles.conditionChipActive]}
+          onPress={() => toggleCondition('Usado')}
+        >
+          <Text style={[styles.conditionText, selectedCondition === 'Usado' && styles.conditionTextActive]}>
+            Usado
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* 4. Lista Vertical de Artigos */}
+      {loading && page === 1 ? (
+        <View style={styles.centerLoading}>
+          <ActivityIndicator size="large" color="#2e7d32" />
+        </View>
+      ) : (
+        <FlatList
+          data={artigos}
+          keyExtractor={item => item.id.toString()}
+          renderItem={renderArticleCard}
+          contentContainerStyle={styles.articlesList}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} colors={['#2e7d32']} />}
+          onEndReached={handleLoadMore}
+          onEndReachedThreshold={0.2}
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <Ionicons name="cube-outline" size={60} color="#bbb" />
+              <Text style={styles.emptyText}>Nenhum artigo encontrado.</Text>
+            </View>
+          }
+          ListFooterComponent={
+            page < totalPages && loading ? (
+              <ActivityIndicator size="small" color="#2e7d32" style={{ marginVertical: 12 }} />
+            ) : null
+          }
+        />
+      )}
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f8f9fa'
+  },
+  searchSection: {
+    paddingHorizontal: 16,
+    paddingTop: 10,
+    paddingBottom: 6
+  },
+  searchBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    paddingHorizontal: 12,
+    height: 44
+  },
+  searchIcon: {
+    marginRight: 8
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 15,
+    color: '#333'
+  },
+  clearButton: {
+    padding: 4
+  },
+  categoriesSection: {
+    marginVertical: 6
+  },
+  categoriesList: {
+    paddingHorizontal: 16,
+    gap: 8
+  },
+  categoryChip: {
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderRadius: 20
+  },
+  categoryChipActive: {
+    backgroundColor: '#2e7d32',
+    borderColor: '#2e7d32'
+  },
+  categoryChipText: {
+    fontSize: 13,
+    color: '#495057',
+    fontWeight: '500'
+  },
+  categoryChipTextActive: {
+    color: '#fff'
+  },
+  conditionRow: {
+    flexDirection: 'row',
+    paddingHorizontal: 16,
+    gap: 10,
+    marginBottom: 8
+  },
+  conditionChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 6,
+    backgroundColor: '#e9ecef'
+  },
+  conditionChipActive: {
+    backgroundColor: '#343a40'
+  },
+  conditionText: {
+    fontSize: 12,
+    color: '#495057',
+    fontWeight: '600'
+  },
+  conditionTextActive: {
+    color: '#fff'
+  },
+  articlesList: {
+    paddingHorizontal: 16,
+    paddingBottom: 24,
+    gap: 12
+  },
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#edf2f7',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 5,
+    shadowOffset: { width: 0, height: 2 }
+  },
+  cardImage: {
+    width: '100%',
+    height: 180
+  },
+  noImageContainer: {
+    backgroundColor: '#f1f3f5',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  noImageText: {
+    fontSize: 12,
+    color: '#868e96',
+    marginTop: 4
+  },
+  cardContent: {
+    padding: 12
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center'
+  },
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#212529',
+    flex: 1,
+    marginRight: 8
+  },
+  cardCategory: {
+    fontSize: 13,
+    color: '#6c757d',
+    marginTop: 4
+  },
+  badgesRow: {
+    flexDirection: 'row',
+    gap: 6,
+    marginTop: 10
+  },
+  badge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 4
+  },
+  badgeGreen: {
+    backgroundColor: '#d4edda'
+  },
+  badgeOrange: {
+    backgroundColor: '#fff3cd'
+  },
+  badgeAvailable: {
+    backgroundColor: '#cce5ff'
+  },
+  badgeUnavailable: {
+    backgroundColor: '#f8d7da'
+  },
+  badgeText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#333'
+  },
+  centerLoading: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 50
+  },
+  emptyText: {
+    fontSize: 15,
+    color: '#868e96',
+    marginTop: 10
+  }
+});
