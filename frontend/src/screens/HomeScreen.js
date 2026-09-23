@@ -164,7 +164,7 @@ export default function HomeScreen({ navigation, onLogout }) {
     const imageUri = fotoUrl?.startsWith('http')
       ? fotoUrl
       : fotoUrl
-      ? `${api.defaults.baseURL.replace('/api', '')}/${fotoUrl}`
+      ? `${api.defaults.baseURL.replace('/api', '')}/pictures/${fotoUrl}`
       : null;
 
     return (
@@ -188,7 +188,7 @@ export default function HomeScreen({ navigation, onLogout }) {
               {item.titulo}
             </Text>
             {isOwner ? (
-              <TouchableOpacity onPress={() => navigation.navigate('EditArticle', { article: item })}>
+              <TouchableOpacity onPress={() => navigation.navigate('EditArticleScreen', { article: item })}>
                 <Ionicons name="pencil" size={18} color="#007bff" />
               </TouchableOpacity>
             ) : (

@@ -209,8 +209,8 @@ router.post('/', authenticateToken, async (req, res) => {
   }
 
   try {
- //Verificar se o utilizador existe
- const utilizadorExiste = await db.Utilizador.findByPk(utilizador_id);
+    //Verificar se o utilizador existe
+    const utilizadorExiste = await db.Utilizador.findByPk(utilizador_id);
     if (!utilizadorExiste) {
       return res.status(400).send({
         message: "Utilizador selecionado não existe"
@@ -272,19 +272,12 @@ router.put('/:id', authenticateToken, async (req, res) => {
       });
     }
 
-    // Atualiza o artigo e obtém o número de linhas afetadas
-    const [numLinhasAfetadas] = await db.Artigo.update(req.body, {
+    // Atualiza o artigo
+    await db.Artigo.update(req.body, {
       where: { id: id }
     });
 
-    // Verifica se a atualização foi bem-sucedida
-    if (numLinhasAfetadas === 1) {
-      res.send({ message: "Artigo atualizado com sucesso" });
-    } else {
-      res.status(404).send({
-        message: `Não foi possível atualizar o artigo com id=${id}`
-      });
-    }
+    res.send({ message: "Artigo atualizado com sucesso" });
   } catch (error) {
     res.status(500).send({
       message: `Erro ao atualizar artigo com id=${id}`
@@ -314,7 +307,9 @@ router.delete('/:artigoId/fotos/:fotoId', authenticateToken, async (req, res) =>
 
     // Apagar o arquivo físico
     const filePath = path.join(uploadDir, foto.caminho_foto);
-    fs.unlinkSync(filePath); // Remove o arquivo
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath); // Remove o arquivo
+    }
 
     // Apagar da base de dados
     await foto.destroy();
@@ -337,8 +332,12 @@ router.post('/:id/fotos', authenticateToken, upload.array('fotos', 5), // Middle
       const artigo = await db.Artigo.findByPk(req.params.id);
       const utilizadorCompleto = await db.Utilizador.findByPk(req.user.id);
       
-      if (!artigo || artigo.utilizador_id !== req.user.id && utilizadorCompleto.tipo_utilizador_id !== 2) {
+      if (!artigo || (artigo.utilizador_id !== req.user.id && utilizadorCompleto.tipo_utilizador_id !== 2)) {
         return res.status(403).json({ message: "Operação não permitida" });
+      }
+
+      if (!req.files || req.files.length === 0) {
+        return res.status(400).json({ message: "Nenhuma foto enviada" });
       }
 
       // Processar upload de fotos
@@ -384,7 +383,6 @@ router.delete('/:id', authenticateToken, async (req, res) => {
 
     // Verificar se o utlizador é o dono do artigo ou docente
     const utilizadorCompleto = await db.Utilizador.findByPk(req.user.id);
-    // Verificar se o utlizador é o dono do artigo ou docente
     if (artigo.utilizador_id !== req.user.id && utilizadorCompleto.tipo_utilizador_id !== 2) {
       return res.status(403).send({
         message: "Não tem permissão para apagar este artigo"

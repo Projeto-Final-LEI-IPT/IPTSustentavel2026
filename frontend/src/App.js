@@ -9,6 +9,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import HomeScreen from './screens/HomeScreen';
 import LoginScreen from './screens/LoginScreen'; 
 import CreateArticleScreen from './screens/CreateArticleScreen';
+import ArticleDetailScreen from './screens/ArticleDetailScreen';
+import EditArticleScreen from './screens/EditArticleScreen';
 
 function EmptyScreen() {
   return <View style={styles.center} />;
@@ -174,24 +176,46 @@ export default function App() {
 
   return (
     <NavigationContainer>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {isAuthenticated ? (
-          <Stack.Screen name="Main">
-            {(props) => (
-              <MainTabNavigator
-                {...props}
-                onLogout={() => setIsAuthenticated(false)}
-              />
-            )}
-          </Stack.Screen>
-        ) : (
-          <Stack.Screen name="Login">
+      <Stack.Navigator>
+       {isAuthenticated ? (
+         <>
+           <Stack.Screen name="Main" options={{ headerShown: false }}>
+             {(props) => (
+                <MainTabNavigator
+                  {...props}
+                  onLogout={() => setIsAuthenticated(false)}
+               />
+             )}
+            </Stack.Screen>
+            <Stack.Screen
+             name="ArticleDetail"
+             component={ArticleDetailScreen}
+             options={{
+                title: 'Detalhe do Artigo',
+                headerStyle: { backgroundColor: '#2e7d32' },
+                headerTintColor: '#fff',
+               headerTitleStyle: { fontWeight: '700' },
+              }}
+            />
+            <Stack.Screen
+              name="EditArticleScreen"
+              component={EditArticleScreen}
+              options={{
+                title: 'Editar Artigo',
+                headerStyle: { backgroundColor: '#2e7d32' },
+                headerTintColor: '#fff',
+                headerTitleStyle: { fontWeight: '700' },
+              }}
+            />
+         </>
+       ) : (
+         <Stack.Screen name="Login" options={{ headerShown: false }}>
             {(props) => (
               <LoginScreen
                 {...props}
-                onLoginSuccess={() => setIsAuthenticated(true)}
-              />
-            )}
+               onLoginSuccess={() => setIsAuthenticated(true)}
+             />
+           )}
           </Stack.Screen>
         )}
       </Stack.Navigator>
