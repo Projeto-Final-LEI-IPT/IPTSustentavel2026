@@ -18,7 +18,7 @@ const app = express();
 app.use(cors());
 // Ativa o middleware que analisa o corpo dos pedidos com conteúdo JSON, para processar dados enviados em formato JSON nas requisições POST e PUT.
 app.use(express.json());
-app.use('/pictures', express.static(path.join(__dirname, './pictures')));
+app.use('/pictures', express.static(path.resolve(__dirname, './pictures')));
 //app.use('/api/pictures', express.static('./routes/uploads'));
 
 

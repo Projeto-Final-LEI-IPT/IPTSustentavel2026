@@ -64,13 +64,13 @@ export default function CreateArticleScreen({ visible, onClose, onArticleCreated
     }
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ['images'],
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.8
     });
 
-    if (!result.canceled && result.assets[0]?.uri) {
+    if (!result.canceled && result.assets?.[0]?.uri) {
       setPhotos(prev => [...prev, result.assets[0].uri]);
     }
   };
@@ -87,21 +87,26 @@ export default function CreateArticleScreen({ visible, onClose, onArticleCreated
     const formData = new FormData();
     photos.forEach((uri, index) => {
       const filename = uri.split('/').pop() || `foto_${index}.jpg`;
-      const match = /\.(\w+)$/.exec(filename);
-      const type = match ? `image/${match[1]}` : 'image/jpeg';
+      const extension = filename.split('.').pop()?.toLowerCase();
+
+      // Normalização estrita do tipo MIME para coincidir com o ALLOWED_MIME_TYPES do Multer
+      let mimeType = 'image/jpeg';
+      if (extension === 'png') mimeType = 'image/png';
+      else if (extension === 'webp') mimeType = 'image/webp';
+      else if (extension === 'gif') mimeType = 'image/gif';
 
       formData.append('fotos', {
-        uri,
+        uri: Platform.OS === 'android' ? uri : uri.replace('file://', ''),
         name: filename,
-        type
+        type: mimeType
       });
     });
 
     await api.post(`/artigos/${articleId}/fotos`, formData, {
       headers: {
-        'Content-Type': 'multipart/form-data',
         Authorization: `Bearer ${token}`
-      }
+      },
+      transformRequest: (data) => data
     });
   };
 

@@ -6,17 +6,26 @@ import {
   Image,
   ScrollView,
   TouchableOpacity,
-  StatusBar
+  Alert,
+  ActivityIndicator,
+  StatusBar,
+  Dimensions
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../services/api';
 
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const CAROUSEL_HEIGHT = 280;
+
 export default function ArticleDetailScreen({ route, navigation }) {
   const { article } = route.params;
   const [currentUserId, setCurrentUserId] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [activePhotoIndex, setActivePhotoIndex] = useState(0);
 
+  // Carrega o id do utilizador autenticado
   useEffect(() => {
     const fetchUserId = async () => {
       try {
@@ -30,25 +39,98 @@ export default function ArticleDetailScreen({ route, navigation }) {
   }, []);
 
   const isOwner = currentUserId && article.utilizador_id?.toString() === currentUserId;
+  const photos = article.fotos || [];
 
-  // Resolve a imagem 
-  const fotoUrl = article.fotos?.[0]?.caminho_foto;
-  const imageUri = fotoUrl?.startsWith('http')
-    ? fotoUrl
-    : fotoUrl
-    ? `${api.defaults.baseURL.replace('/api', '')}/pictures/${fotoUrl}`
-    : null;
+  const getImageUrl = (caminho) => {
+    if (!caminho) return null;
+    return caminho.startsWith('http')
+      ? caminho
+      : `${api.defaults.baseURL.replace('/api', '')}/pictures/${caminho}`;
+  };
+
+  const handleScroll = (event) => {
+    const slide = Math.round(event.nativeEvent.contentOffset.x / SCREEN_WIDTH);
+    if (slide !== activePhotoIndex) {
+      setActivePhotoIndex(slide);
+    }
+  };
+
+  // Função para apagar o artigo
+  const handleDeleteArticle = () => {
+    Alert.alert(
+      'Eliminar Artigo',
+      'Tens a certeza de que queres eliminar este artigo? Esta ação não pode ser revertida.',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Eliminar',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              setIsDeleting(true);
+              await api.delete(`/artigos/${article.id}`);
+              Alert.alert('Sucesso', 'Artigo eliminado com sucesso!', [
+                {
+                  text: 'OK',
+                  onPress: () => navigation.navigate('Main')
+                }
+              ]);
+            } catch (error) {
+              console.error('Erro ao eliminar artigo:', error);
+              Alert.alert('Erro', error.response?.data?.message || 'Falha ao eliminar o artigo.');
+            } finally {
+              setIsDeleting(false);
+            }
+          }
+        }
+      ]
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       <StatusBar barStyle="light-content" backgroundColor="#2e7d32" />
       <ScrollView contentContainerStyle={styles.scrollContent}>
         
-        {/* Imagem do Artigo */}
-        {imageUri ? (
-          <Image source={{ uri: imageUri }} style={styles.image} resizeMode="cover" />
+        {/* Carrossel de Imagens com suporte a Arrastar e Zoom */}
+        {photos.length > 0 ? (
+          <View style={styles.carouselContainer}>
+            <ScrollView
+              horizontal
+              pagingEnabled
+              showsHorizontalScrollIndicator={false}
+              onMomentumScrollEnd={handleScroll}
+            >
+              {photos.map((item, index) => (
+                <ScrollView
+                  key={item.id || index}
+                  style={styles.zoomScroll}
+                  maximumZoomScale={3}
+                  minimumZoomScale={1}
+                  showsHorizontalScrollIndicator={false}
+                  showsVerticalScrollIndicator={false}
+                  centerContent
+                >
+                  <Image
+                    source={{ uri: getImageUrl(item.caminho_foto) }}
+                    style={styles.carouselImage}
+                    resizeMode="contain"
+                  />
+                </ScrollView>
+              ))}
+            </ScrollView>
+
+            {/* Badge com a página atual ex: 1/3 */}
+            {photos.length > 1 && (
+              <View style={styles.counterBadge}>
+                <Text style={styles.counterText}>
+                  {activePhotoIndex + 1} / {photos.length}
+                </Text>
+              </View>
+            )}
+          </View>
         ) : (
-          <View style={[styles.image, styles.noImage]}>
+          <View style={[styles.carouselContainer, styles.noImage]}>
             <Ionicons name="image-outline" size={60} color="#888" />
             <Text style={styles.noImageText}>Sem imagem</Text>
           </View>
@@ -86,16 +168,36 @@ export default function ArticleDetailScreen({ route, navigation }) {
         </View>
       </ScrollView>
 
-      {/* Botão de Rodapé Dinâmico */}
+      {/* Rodapé Dinâmico: Ações para Dono vs Outros Utilizadores */}
       <View style={styles.footer}>
         {isOwner ? (
-          <TouchableOpacity
-            style={[styles.actionButton, styles.editButton]}
-            onPress={() => navigation.navigate('EditArticleScreen', { article })}
-          >
-            <Ionicons name="pencil-outline" size={20} color="#fff" style={{ marginRight: 8 }} />
-            <Text style={styles.actionButtonText}>Editar Anúncio</Text>
-          </TouchableOpacity>
+          <View style={styles.ownerButtonsRow}>
+            {/* Botão de Editar */}
+            <TouchableOpacity
+              style={[styles.actionButton, styles.editButton]}
+              onPress={() => navigation.navigate('EditArticleScreen', { article })}
+              disabled={isDeleting}
+            >
+              <Ionicons name="pencil-outline" size={18} color="#fff" style={{ marginRight: 6 }} />
+              <Text style={styles.actionButtonText}>Editar</Text>
+            </TouchableOpacity>
+
+            {/* Botão de Apagar */}
+            <TouchableOpacity
+              style={[styles.actionButton, styles.deleteButton]}
+              onPress={handleDeleteArticle}
+              disabled={isDeleting}
+            >
+              {isDeleting ? (
+                <ActivityIndicator color="#fff" size="small" />
+              ) : (
+                <>
+                  <Ionicons name="trash-outline" size={18} color="#fff" style={{ marginRight: 6 }} />
+                  <Text style={styles.actionButtonText}>Eliminar</Text>
+                </>
+              )}
+            </TouchableOpacity>
+          </View>
         ) : (
           <TouchableOpacity
             style={[styles.actionButton, styles.messageButton]}
@@ -119,10 +221,37 @@ export default function ArticleDetailScreen({ route, navigation }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
-  scrollContent: { paddingBottom: 90 },
-  image: { width: '100%', height: 260 },
-  noImage: { backgroundColor: '#f1f3f5', justifyContent: 'center', alignItems: 'center' },
+  scrollContent: { paddingBottom: 100 },
+  carouselContainer: {
+    width: SCREEN_WIDTH,
+    height: CAROUSEL_HEIGHT,
+    backgroundColor: '#000',
+    position: 'relative'
+  },
+  zoomScroll: {
+    width: SCREEN_WIDTH,
+    height: CAROUSEL_HEIGHT
+  },
+  carouselImage: {
+    width: SCREEN_WIDTH,
+    height: CAROUSEL_HEIGHT
+  },
+  noImage: {
+    backgroundColor: '#f1f3f5',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
   noImageText: { color: '#888', marginTop: 6 },
+  counterBadge: {
+    position: 'absolute',
+    bottom: 12,
+    right: 14,
+    backgroundColor: 'rgba(0, 0, 0, 0.65)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 14
+  },
+  counterText: { color: '#fff', fontSize: 12, fontWeight: '700' },
   content: { padding: 18 },
   title: { fontSize: 22, fontWeight: 'bold', color: '#212529', marginBottom: 4 },
   category: { fontSize: 14, color: '#6c757d', marginBottom: 12 },
@@ -158,6 +287,10 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderColor: '#e9ecef'
   },
+  ownerButtonsRow: {
+    flexDirection: 'row',
+    gap: 12
+  },
   actionButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -165,7 +298,20 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 8
   },
-  messageButton: { backgroundColor: '#2e7d32' },
-  editButton: { backgroundColor: '#007bff' },
-  actionButtonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' }
+  messageButton: {
+    backgroundColor: '#2e7d32'
+  },
+  editButton: {
+    flex: 1,
+    backgroundColor: '#007bff'
+  },
+  deleteButton: {
+    flex: 1,
+    backgroundColor: '#dc3545'
+  },
+  actionButtonText: {
+    color: '#fff',
+    fontSize: 15,
+    fontWeight: 'bold'
+  }
 });

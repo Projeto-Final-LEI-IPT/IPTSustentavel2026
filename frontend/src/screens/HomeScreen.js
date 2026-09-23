@@ -159,12 +159,15 @@ export default function HomeScreen({ navigation, onLogout }) {
 
   const renderArticleCard = ({ item }) => {
     const isOwner = currentUserId && item.utilizador_id?.toString() === currentUserId;
-    const fotoUrl = item.fotos?.[0]?.caminho_foto;
     
-    const imageUri = fotoUrl?.startsWith('http')
-      ? fotoUrl
-      : fotoUrl
-      ? `${api.defaults.baseURL.replace('/api', '')}/pictures/${fotoUrl}`
+    // Apenas a primeira foto para a capa
+    const firstPhoto = item.fotos?.[0]?.caminho_foto;
+    const totalPhotos = item.fotos?.length || 0;
+
+    const imageUri = firstPhoto?.startsWith('http')
+      ? firstPhoto
+      : firstPhoto
+      ? `${api.defaults.baseURL.replace('/api', '')}/pictures/${firstPhoto}`
       : null;
 
     return (
@@ -174,7 +177,15 @@ export default function HomeScreen({ navigation, onLogout }) {
         onPress={() => navigation.navigate('ArticleDetail', { article: item })}
       >
         {imageUri ? (
-          <Image source={{ uri: imageUri }} style={styles.cardImage} resizeMode="cover" />
+          <View style={styles.imageContainer}>
+            <Image source={{ uri: imageUri }} style={styles.cardImage} resizeMode="cover" />
+            {totalPhotos > 1 && (
+              <View style={styles.photoCountBadge}>
+                <Ionicons name="images" size={12} color="#fff" style={{ marginRight: 3 }} />
+                <Text style={styles.photoCountText}>1/{totalPhotos}</Text>
+              </View>
+            )}
+          </View>
         ) : (
           <View style={[styles.cardImage, styles.noImageContainer]}>
             <Ionicons name="image-outline" size={40} color="#888" />
@@ -422,9 +433,31 @@ const styles = StyleSheet.create({
     shadowRadius: 5,
     shadowOffset: { width: 0, height: 2 }
   },
+  imageContainer: {
+    position: 'relative',
+    width: '100%',
+    height: 180,
+    backgroundColor: '#f1f3f5'
+  },
   cardImage: {
     width: '100%',
     height: 180
+  },
+  photoCountBadge: {
+    position: 'absolute',
+    bottom: 8,
+    right: 8,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 12
+  },
+  photoCountText: {
+    color: '#fff',
+    fontSize: 11,
+    fontWeight: 'bold'
   },
   noImageContainer: {
     backgroundColor: '#f1f3f5',
