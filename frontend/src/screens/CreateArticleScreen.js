@@ -11,7 +11,8 @@ import {
   ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
-  Platform
+  Platform,
+  Linking
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
@@ -50,28 +51,60 @@ export default function CreateArticleScreen({ visible, onClose, onArticleCreated
     }
   };
 
-  // Selecionar imagem da galeria com corte quadrado nativo (1:1)
+  // Selecionar imagem da galeria com corte quadrado nativo (1:1) e validação robusta de permissões
   const pickImage = async () => {
     if (photos.length >= 5) {
       Alert.alert('Limite atingido', 'Podes adicionar no máximo 5 imagens.');
       return;
     }
 
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert('Permissão necessária', 'Precisamos de acesso às tuas fotos para adicionar imagens.');
-      return;
-    }
+    try {
+      // 1. Verificar estado atual da permissão
+      const currentStatus = await ImagePicker.getMediaLibraryPermissionsAsync();
+      let isGranted = currentStatus.granted;
 
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.8
-    });
+      // 2. Pedir permissão ao sistema se ainda não concedida
+      if (!isGranted) {
+        // Deteta se o utilizador já bloqueou permanentemente (comum no APK)
+        if (!currentStatus.canAskAgain && currentStatus.status === 'denied') {
+          Alert.alert(
+            'Permissão Necessária',
+            'A aplicação não tem autorização para aceder à galeria. Por favor, ativa a permissão nas definições do dispositivo.',
+            [
+              { text: 'Cancelar', style: 'cancel' },
+              { text: 'Abrir Definições', onPress: () => Linking.openSettings() }
+            ]
+          );
+          return;
+        }
 
-    if (!result.canceled && result.assets?.[0]?.uri) {
-      setPhotos(prev => [...prev, result.assets[0].uri]);
+        const requestStatus = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        isGranted = requestStatus.granted;
+      }
+
+      // 3. Se o utilizador recusou o acesso
+      if (!isGranted) {
+        Alert.alert(
+          'Permissão Necessária',
+          'Precisamos de autorização de acesso às fotos para adicionar imagens ao teu anúncio.'
+        );
+        return;
+      }
+
+      // 4. Abrir seletor da galeria
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8
+      });
+
+      if (!result.canceled && result.assets?.[0]?.uri) {
+        setPhotos(prev => [...prev, result.assets[0].uri]);
+      }
+    } catch (error) {
+      console.error('Erro ao selecionar foto:', error);
+      Alert.alert('Erro', 'Ocorreu um erro ao tentar aceder à galeria.');
     }
   };
 
