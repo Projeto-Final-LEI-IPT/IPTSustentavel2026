@@ -198,21 +198,28 @@ export default function HomeScreen({ navigation, onLogout }) {
             <Text style={styles.cardTitle} numberOfLines={1}>
               {item.titulo}
             </Text>
+
+            {/* Ações: Editar (Dono) ou Abrir Chat (Outros Utilizadores) */}
             {isOwner ? (
-              <TouchableOpacity onPress={() => navigation.navigate('EditArticleScreen', { article: item })}>
-                <Ionicons name="pencil" size={18} color="#007bff" />
+              <TouchableOpacity
+                onPress={() => navigation.navigate('EditArticleScreen', { article: item })}
+                style={styles.actionIconBtn}
+              >
+                <Ionicons name="pencil" size={20} color="#007bff" />
               </TouchableOpacity>
             ) : (
               <TouchableOpacity
+                style={styles.actionIconBtn}
                 onPress={() =>
                   navigation.navigate('Chat', {
                     recipientId: item.utilizador_id,
+                    recipientName: item.utilizador?.nome || 'Utilizador IPT',
                     articleId: item.id,
                     articleTitle: item.titulo
                   })
                 }
               >
-                <Ionicons name="chatbubble-ellipses-outline" size={18} color="#28a745" />
+                <Ionicons name="chatbubbles" size={22} color="#2e7d32" />
               </TouchableOpacity>
             )}
           </View>
@@ -488,6 +495,11 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#6c757d',
     marginTop: 4
+  },
+  actionIconBtn: {
+    padding: 4,
+    justifyContent: 'center',
+    alignItems: 'center'
   },
   badgesRow: {
     flexDirection: 'row',

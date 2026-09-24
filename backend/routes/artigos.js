@@ -371,16 +371,8 @@ router.delete('/:id', authenticateToken, async (req, res) => {
   const id = req.params.id;
 
   try {
-    // 1. Procura o artigo incluindo as fotos associadas
-    const artigo = await db.Artigo.findByPk(id, {
-      include: [
-        {
-          model: db.ArtigoFotos,
-          as: 'fotos',
-          attributes: ['id', 'caminho_foto']
-        }
-      ]
-    });
+    // 1. Procura o artigo
+    const artigo = await db.Artigo.findByPk(id);
 
     // Verifica se o artigo existe
     if (!artigo) {
@@ -389,45 +381,55 @@ router.delete('/:id', authenticateToken, async (req, res) => {
       });
     }
 
-    // 2. Verificar se o utilizador é o dono do artigo ou docente (tipo 2)
+    // 2. Valida permissões (dono ou docente)
     const utilizadorCompleto = await db.Utilizador.findByPk(req.user.id);
-    if (artigo.utilizador_id !== req.user.id && utilizadorCompleto.tipo_utilizador_id !== 2) {
+    if (artigo.utilizador_id !== req.user.id && utilizadorCompleto?.tipo_utilizador_id !== 2) {
       return res.status(403).send({
         message: "Não tem permissão para apagar este artigo"
       });
     }
 
-    // 3. Apagar os ficheiros físicos da pasta 'pictures'
-    if (artigo.fotos && artigo.fotos.length > 0) {
-      artigo.fotos.forEach(foto => {
-        if (foto.caminho_foto) {
-          // Extrai apenas o nome do ficheiro (ex: 172000000_foto.jpg)
-          const fileName = path.basename(foto.caminho_foto);
-          const filePath = path.join(uploadDir, fileName);
+    // 3. Procura as fotos associadas
+    const fotos = await db.ArtigoFotos.findAll({
+      where: { artigo_id: id }
+    });
 
-          // Verifica se o ficheiro existe no disco antes de apagar
-          if (fs.existsSync(filePath)) {
-            try {
-              fs.unlinkSync(filePath);
-            } catch (err) {
-              console.error(`Erro ao apagar o ficheiro físico ${fileName}:`, err);
-            }
+    // 4. Apaga os ficheiros físicos da pasta pictures
+    for (const foto of fotos) {
+      if (foto.caminho_foto) {
+        const fileName = path.basename(foto.caminho_foto);
+        const filePath = path.join(uploadDir, fileName);
+
+        if (fs.existsSync(filePath)) {
+          try {
+            fs.unlinkSync(filePath);
+          } catch (err) {
+            console.error(`Erro ao apagar ficheiro físico ${fileName}:`, err.message);
           }
         }
-      });
+      }
     }
 
-    // 4. Apagar os registos de fotos na base de dados (caso a FK não tenha CASCADE)
+    // 5. PRESERVAR AS MENSAGENS: Anula a referência ao artigo em vez de apagar
+    const MensagemModel = db.MENSAGEM || db.Mensagem;
+    if (MensagemModel) {
+      await MensagemModel.update(
+        { artigo_id: null },
+        { where: { artigo_id: id } }
+      );
+    }
+
+    // 6. Apaga os registos de fotos da BD
     await db.ArtigoFotos.destroy({
       where: { artigo_id: id }
     });
 
-    // 5. Apagar o artigo da base de dados
+    // 7. Apaga o artigo
     await artigo.destroy();
 
-    res.send({ message: "Artigo e respetivas imagens apagados com sucesso" });
+    res.send({ message: "Artigo apagado com sucesso. Mensagens preservadas." });
   } catch (error) {
-    console.error("Erro ao apagar artigo e fotos:", error);
+    console.error("Erro detalhado ao apagar artigo:", error);
     res.status(500).send({
       message: `Erro ao apagar artigo com id=${id}`,
       error: error.message

@@ -11,7 +11,7 @@ import {
   StatusBar,
   Dimensions
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../services/api';
@@ -21,6 +21,7 @@ const CAROUSEL_HEIGHT = 280;
 
 export default function ArticleDetailScreen({ route, navigation }) {
   const { article } = route.params;
+  const insets = useSafeAreaInsets(); // Deteta dinamicamente a barra do sistema Android
   const [currentUserId, setCurrentUserId] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [activePhotoIndex, setActivePhotoIndex] = useState(0);
@@ -88,10 +89,14 @@ export default function ArticleDetailScreen({ route, navigation }) {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
+    <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#2e7d32" />
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        
+      <ScrollView
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingBottom: 100 + insets.bottom } // Compensa o scroll para o texto final não ficar oculto atrás dos botões
+        ]}
+      >
         {/* Carrossel de Imagens com suporte a Arrastar e Zoom */}
         {photos.length > 0 ? (
           <View style={styles.carouselContainer}>
@@ -168,8 +173,15 @@ export default function ArticleDetailScreen({ route, navigation }) {
         </View>
       </ScrollView>
 
-      {/* Rodapé Dinâmico: Ações para Dono vs Outros Utilizadores */}
-      <View style={styles.footer}>
+      {/* Rodapé Dinâmico com compensação da barra de navegação virtual */}
+      <View
+        style={[
+          styles.footer,
+          {
+            paddingBottom: insets.bottom > 0 ? insets.bottom + 8 : 16
+          }
+        ]}
+      >
         {isOwner ? (
           <View style={styles.ownerButtonsRow}>
             {/* Botão de Editar */}
@@ -199,6 +211,7 @@ export default function ArticleDetailScreen({ route, navigation }) {
             </TouchableOpacity>
           </View>
         ) : (
+          /* Botão visível para os outros utilizadores */
           <TouchableOpacity
             style={[styles.actionButton, styles.messageButton]}
             onPress={() =>
@@ -211,11 +224,11 @@ export default function ArticleDetailScreen({ route, navigation }) {
             }
           >
             <Ionicons name="chatbubbles-outline" size={20} color="#fff" style={{ marginRight: 8 }} />
-            <Text style={styles.actionButtonText}>Enviar Mensagem ao Dono</Text>
+            <Text style={styles.actionButtonText}>Enviar Mensagem</Text>
           </TouchableOpacity>
         )}
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -251,17 +264,51 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 14
   },
-  counterText: { color: '#fff', fontSize: 12, fontWeight: '700' },
-  content: { padding: 18 },
-  title: { fontSize: 22, fontWeight: 'bold', color: '#212529', marginBottom: 4 },
-  category: { fontSize: 14, color: '#6c757d', marginBottom: 12 },
-  badgesRow: { flexDirection: 'row', gap: 8, marginBottom: 18 },
-  badge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6 },
-  badgeGreen: { backgroundColor: '#d4edda' },
-  badgeOrange: { backgroundColor: '#fff3cd' },
-  badgeAvailable: { backgroundColor: '#cce5ff' },
-  badgeUnavailable: { backgroundColor: '#f8d7da' },
-  badgeText: { fontSize: 12, fontWeight: '600', color: '#333' },
+  counterText: { 
+    color: '#fff', 
+    fontSize: 12, 
+    fontWeight: '700' 
+  },
+  content: { 
+    padding: 18 
+  },
+  title: { 
+    fontSize: 22, 
+    fontWeight: 'bold',
+    color: '#212529', 
+    marginBottom: 4 
+  },
+  category: { 
+    fontSize: 14, 
+    color: '#6c757d', 
+    marginBottom: 12 
+  },
+  badgesRow: { 
+    flexDirection: 'row', 
+    gap: 8, marginBottom: 18
+ },
+  badge: { 
+    paddingHorizontal: 10, 
+    paddingVertical: 4, 
+    borderRadius: 6 
+  },
+  badgeGreen: { 
+    backgroundColor: '#d4edda' 
+  },
+  badgeOrange: { 
+    backgroundColor: '#fff3cd' 
+  },
+  badgeAvailable: { 
+    backgroundColor: '#cce5ff' 
+  },
+  badgeUnavailable: { 
+    backgroundColor: '#f8d7da' 
+  },
+  badgeText: { 
+    fontSize: 12, 
+    fontWeight: '600', 
+    color: '#333' 
+  },
   ownerCard: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -272,18 +319,37 @@ const styles = StyleSheet.create({
     borderColor: '#e9ecef',
     marginBottom: 20
   },
-  ownerInfo: { marginLeft: 12 },
-  ownerName: { fontSize: 15, fontWeight: '700', color: '#333' },
-  ownerEmail: { fontSize: 13, color: '#6c757d' },
-  sectionTitle: { fontSize: 16, fontWeight: 'bold', color: '#333', marginBottom: 8 },
-  description: { fontSize: 15, lineHeight: 22, color: '#495057' },
+  ownerInfo: { 
+    marginLeft: 12 
+  },
+  ownerName: {
+     fontSize: 15, 
+     fontWeight: '700', 
+     color: '#333' 
+    },
+  ownerEmail: { 
+    fontSize: 13, 
+    color: '#6c757d' 
+  },
+  sectionTitle: { 
+    fontSize: 16, 
+    fontWeight: 'bold', 
+    color: '#333', 
+    marginBottom: 8 
+  },
+  description: { 
+    fontSize: 15, 
+    lineHeight: 22, 
+    color: '#495057' 
+  },
   footer: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
     backgroundColor: '#fff',
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingTop: 12,
     borderTopWidth: 1,
     borderColor: '#e9ecef'
   },
