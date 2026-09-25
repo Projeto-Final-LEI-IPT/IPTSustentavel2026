@@ -16,10 +16,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import api from '../services/api';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function EditArticlescreen({ route, navigation }) {
   // Parâmetros recebidos da navegação
   const { article } = route.params;
+  const { t, translateCategory } = useLanguage();
 
   // Estados dos campos do formulário
   const [titulo, setTitulo] = useState(article.titulo || '');
@@ -50,7 +52,7 @@ export default function EditArticlescreen({ route, navigation }) {
   const handlePickImage = async () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permissionResult.granted) {
-      Alert.alert('Permissão necessária', 'É preciso permitir acesso à galeria.');
+      Alert.alert(t('permissionRequired'), t('galleryPermissionMsg'));
       return;
     }
 
@@ -69,7 +71,7 @@ export default function EditArticlescreen({ route, navigation }) {
   // Submeter as alterações
   const handleUpdate = async () => {
     if (!titulo.trim() || !categoriaId) {
-      Alert.alert('Erro', 'O título e a categoria são obrigatórios.');
+      Alert.alert(t('error'), `${t('titleRequired')} ${t('categoryRequired')}`);
       return;
     }
 
@@ -103,12 +105,12 @@ export default function EditArticlescreen({ route, navigation }) {
         });
       }
 
-      Alert.alert('Sucesso', 'Artigo atualizado com sucesso!', [
-        { text: 'OK', onPress: () => navigation.navigate('Main') }
+      Alert.alert(t('success'), t('success'), [
+        { text: t('ok'), onPress: () => navigation.navigate('Main') }
       ]);
     } catch (error) {
       console.error('Erro ao atualizar artigo:', error);
-      Alert.alert('Erro', error.response?.data?.message || 'Falha ao atualizar o artigo.');
+      Alert.alert(t('error'), error.response?.data?.message || t('failedPublishListing'));
     } finally {
       setLoading(false);
     }
@@ -136,22 +138,23 @@ export default function EditArticlescreen({ route, navigation }) {
           ) : (
             <View style={styles.placeholderImage}>
               <Ionicons name="camera-outline" size={40} color="#888" />
-              <Text style={styles.placeholderText}>Alterar Fotografia</Text>
+              <Text style={styles.placeholderText}>{t('addPhoto')}</Text>
             </View>
           )}
         </TouchableOpacity>
 
         {/* Título */}
-        <Text style={styles.label}>Título do Anúncio *</Text>
+        <Text style={styles.label}>{t('listingTitleLabel')}</Text>
         <TextInput
           style={styles.input}
           value={titulo}
           onChangeText={setTitulo}
-          placeholder="Ex: Livro de Cálculo"
+          placeholder={t('listingTitlePlaceholder')}
+          placeholderTextColor="#888"
         />
 
         {/* Categoria */}
-        <Text style={styles.label}>Categoria *</Text>
+        <Text style={styles.label}>{t('categoryLabel')}</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipRow}>
           {categorias.map((cat) => (
             <TouchableOpacity
@@ -160,14 +163,14 @@ export default function EditArticlescreen({ route, navigation }) {
               onPress={() => setCategoriaId(cat.id.toString())}
             >
               <Text style={[styles.chipText, categoriaId === cat.id.toString() && styles.chipTextActive]}>
-                {cat.nome}
+                {translateCategory(cat.nome)}
               </Text>
             </TouchableOpacity>
           ))}
         </ScrollView>
 
         {/* Condição */}
-        <Text style={styles.label}>Condição</Text>
+        <Text style={styles.label}>{t('conditionLabel')}</Text>
         <View style={styles.conditionRow}>
           {['Novo', 'Usado'].map((item) => (
             <TouchableOpacity
@@ -176,7 +179,7 @@ export default function EditArticlescreen({ route, navigation }) {
               onPress={() => setEstado(item)}
             >
               <Text style={[styles.conditionText, estado === item && styles.conditionTextActive]}>
-                {item}
+                {item === 'Novo' ? t('new') : t('used')}
               </Text>
             </TouchableOpacity>
           ))}
@@ -184,7 +187,7 @@ export default function EditArticlescreen({ route, navigation }) {
 
         {/* Disponibilidade */}
         <View style={styles.switchRow}>
-          <Text style={styles.label}>Disponível para troca/doação</Text>
+          <Text style={styles.label}>{t('available')}</Text>
           <Switch
             value={disponivel}
             onValueChange={setDisponivel}
@@ -194,12 +197,13 @@ export default function EditArticlescreen({ route, navigation }) {
         </View>
 
         {/* Descrição */}
-        <Text style={styles.label}>Descrição</Text>
+        <Text style={styles.label}>{t('descriptionLabel')}</Text>
         <TextInput
           style={[styles.input, styles.textArea]}
           value={descricao}
           onChangeText={setDescricao}
-          placeholder="Detalhes sobre o estado do artigo, etc."
+          placeholder={t('descriptionPlaceholder')}
+          placeholderTextColor="#888"
           multiline
           numberOfLines={4}
         />
@@ -209,7 +213,7 @@ export default function EditArticlescreen({ route, navigation }) {
           {loading ? (
             <ActivityIndicator color="#fff" />
           ) : (
-            <Text style={styles.saveButtonText}>Guardar Alterações</Text>
+            <Text style={styles.saveButtonText}>{t('save')}</Text>
           )}
         </TouchableOpacity>
       </ScrollView>

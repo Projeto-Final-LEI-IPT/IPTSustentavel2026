@@ -9,42 +9,88 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
-  StatusBar
+  StatusBar,
+  Alert
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { useHeaderHeight } from '@react-navigation/elements';
 import api from '../services/api';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function ChatScreen({ route, navigation }) {
   const { recipientId, recipientName, articleId, articleTitle } = route.params;
+  const { t, language } = useLanguage();
 
   const [currentUserId, setCurrentUserId] = useState(null);
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState('');
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [hasCheckedArticles, setHasCheckedArticles] = useState(false);
 
   const flatListRef = useRef(null);
   const headerHeight = useHeaderHeight();
-  const insets = useSafeAreaInsets(); // Obtém a altura da barra do Android
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     navigation.setOptions({
-      title: recipientName || 'Mensagens'
+      title: recipientName || t('conversations')
     });
 
-    const initUser = async () => {
+    const initUserAndCheckRules = async () => {
       try {
         const id = await AsyncStorage.getItem('userId');
-        if (id) setCurrentUserId(Number(id));
+        if (!id) {
+          Alert.alert(t('warning'), t('sessionRequired'));
+          navigation.goBack();
+          return;
+        }
+
+        const userIdNum = Number(id);
+        setCurrentUserId(userIdNum);
+
+        // Verificação obrigatória: utilizador tem pelo menos 1 anúncio?
+        const response = await api.get('/artigos', {
+          params: { isBackoffice: 'true', limit: 100 }
+        });
+        const allArticles = response.data?.artigos || response.data || [];
+        const userArticles = allArticles.filter(
+          (art) => Number(art.utilizador_id) === userIdNum
+        );
+
+        if (userArticles.length === 0) {
+          Alert.alert(
+            t('articleRequiredTitle'),
+            t('articleRequiredMsg'),
+            [
+              {
+                text: t('cancel'),
+                style: 'cancel',
+                onPress: () => navigation.goBack()
+              },
+              {
+                text: t('createAd'),
+                onPress: () => {
+                  navigation.goBack();
+                  navigation.navigate('CreateArticleScreen');
+                }
+              }
+            ]
+          );
+          return;
+        }
+
+        setHasCheckedArticles(true);
       } catch (err) {
-        console.error('Erro ao ler userId da sessão:', err);
+        console.error('Erro ao verificar artigos no chat:', err);
+        navigation.goBack();
       }
     };
-    initUser();
-  }, [navigation, recipientName]);
+
+    initUserAndCheckRules();
+  }, [navigation, recipientName, t]);
 
   const fetchMessages = useCallback(async (userId) => {
     try {
@@ -82,7 +128,7 @@ export default function ChatScreen({ route, navigation }) {
   }, [recipientId]);
 
   useEffect(() => {
-    if (currentUserId) {
+    if (currentUserId && hasCheckedArticles) {
       fetchMessages(currentUserId);
       markAsRead();
 
@@ -92,7 +138,7 @@ export default function ChatScreen({ route, navigation }) {
 
       return () => clearInterval(interval);
     }
-  }, [currentUserId, fetchMessages, markAsRead]);
+  }, [currentUserId, hasCheckedArticles, fetchMessages, markAsRead]);
 
   const handleSendMessage = async () => {
     const textToSend = inputText.trim();
@@ -103,7 +149,8 @@ export default function ChatScreen({ route, navigation }) {
 
       let finalContent = textToSend;
       if (messages.length === 0 && articleTitle) {
-        finalContent = `Artigo: ${articleTitle} | ${textToSend}`;
+        const prefix = language === 'en' ? 'Item' : 'Artigo';
+        finalContent = `${prefix}: ${articleTitle} | ${textToSend}`;
       }
 
       const payload = {
@@ -197,13 +244,12 @@ export default function ChatScreen({ route, navigation }) {
           <View style={styles.articleBanner}>
             <Ionicons name="cube-outline" size={16} color="#2e7d32" />
             <Text style={styles.articleBannerText} numberOfLines={1}>
-              Artigo em conversa: <Text style={styles.articleBannerBold}>{articleTitle}</Text>
+              {t('articleInChat')}: <Text style={styles.articleBannerBold}>{articleTitle}</Text>
             </Text>
           </View>
         )}
 
-        {/* Lista de Mensagens */}
-        {loading ? (
+        {loading || !hasCheckedArticles ? (
           <View style={styles.centerContainer}>
             <ActivityIndicator size="large" color="#2e7d32" />
           </View>
@@ -220,7 +266,7 @@ export default function ChatScreen({ route, navigation }) {
             ListEmptyComponent={
               <View style={styles.emptyContainer}>
                 <Ionicons name="chatbubbles-outline" size={48} color="#ccc" />
-                <Text style={styles.emptyText}>Sem mensagens. Diz olá para iniciar a conversa!</Text>
+                <Text style={styles.emptyText}>{t('noMessagesPrompt')}</Text>
               </View>
             }
           />
@@ -230,12 +276,13 @@ export default function ChatScreen({ route, navigation }) {
         <View style={[styles.inputContainer, { paddingBottom: Math.max(insets.bottom, 10) }]}>
           <TextInput
             style={styles.textInput}
-            placeholder="Escreve uma mensagem..."
+            placeholder={t('chatPlaceholder')}
             placeholderTextColor="#888"
             value={inputText}
             onChangeText={setInputText}
             multiline
             maxLength={500}
+            editable={hasCheckedArticles}
             onFocus={() => {
               setTimeout(() => {
                 flatListRef.current?.scrollToEnd({ animated: true });
@@ -243,9 +290,9 @@ export default function ChatScreen({ route, navigation }) {
             }}
           />
           <TouchableOpacity
-            style={[styles.sendButton, !inputText.trim() && styles.sendButtonDisabled]}
+            style={[styles.sendButton, (!inputText.trim() || !hasCheckedArticles) && styles.sendButtonDisabled]}
             onPress={handleSendMessage}
-            disabled={!inputText.trim() || sending}
+            disabled={!inputText.trim() || sending || !hasCheckedArticles}
           >
             {sending ? (
               <ActivityIndicator size="small" color="#fff" />

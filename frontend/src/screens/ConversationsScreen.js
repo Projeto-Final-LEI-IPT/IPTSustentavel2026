@@ -14,8 +14,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../services/api';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function ConversationsScreen({ navigation }) {
+  const { t, language } = useLanguage();
   const [currentUserId, setCurrentUserId] = useState(null);
   const [conversations, setConversations] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -34,7 +36,7 @@ export default function ConversationsScreen({ navigation }) {
     getUserId();
   }, []);
 
-  // Procura todas as mensagens e agrupa por interlocutor (tal como no website)
+  // Procura todas as mensagens e agrupa por interlocutor
   const fetchConversations = useCallback(async (userId) => {
     if (!userId) return;
     try {
@@ -59,7 +61,7 @@ export default function ConversationsScreen({ navigation }) {
             id: partnerId,
             user: {
               id: partnerId,
-              nome: partner.nome || 'Utilizador IPT',
+              nome: partner.nome || t('iptUser'),
               initials: (partner.nome || 'U').substring(0, 2).toUpperCase()
             },
             articleId: msg.artigo_id || null,
@@ -101,9 +103,8 @@ export default function ConversationsScreen({ navigation }) {
       setLoading(false);
       setRefreshing(false);
     }
-  }, []);
+  }, [t]);
 
-  // Recarrega sempre que o ecrã ganha foco
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
       if (currentUserId) fetchConversations(currentUserId);
@@ -144,6 +145,8 @@ export default function ConversationsScreen({ navigation }) {
         : new Date(lastMsg.data).toLocaleDateString([], { day: '2-digit', month: '2-digit' })
       : '';
 
+    const youPrefix = language === 'en' ? 'You: ' : 'Tu: ';
+
     return (
       <TouchableOpacity
         style={styles.chatCard}
@@ -170,7 +173,7 @@ export default function ConversationsScreen({ navigation }) {
 
           <View style={styles.bottomRow}>
             <Text style={[styles.lastMessage, item.unreadCount > 0 && styles.lastMessageUnread]} numberOfLines={1}>
-              {lastMsg?.isSent ? 'Tu: ' : ''}{displayContent}
+              {lastMsg?.isSent ? youPrefix : ''}{displayContent}
             </Text>
             {item.unreadCount > 0 && (
               <View style={styles.unreadBadge}>
@@ -193,7 +196,7 @@ export default function ConversationsScreen({ navigation }) {
           <Ionicons name="search" size={18} color="#777" style={{ marginRight: 8 }} />
           <TextInput
             style={styles.searchInput}
-            placeholder="Procurar conversas..."
+            placeholder={language === 'en' ? 'Search conversations...' : 'Procurar conversas...'}
             placeholderTextColor="#888"
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -220,7 +223,7 @@ export default function ConversationsScreen({ navigation }) {
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <Ionicons name="chatbubbles-outline" size={54} color="#ccc" />
-              <Text style={styles.emptyText}>Não tens conversas ativas de momento.</Text>
+              <Text style={styles.emptyText}>{t('noConversations')}</Text>
             </View>
           }
         />

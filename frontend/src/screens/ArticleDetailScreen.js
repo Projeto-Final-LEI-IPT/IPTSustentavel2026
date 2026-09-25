@@ -15,13 +15,16 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../services/api';
+import { useLanguage } from '../context/LanguageContext';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CAROUSEL_HEIGHT = 280;
 
 export default function ArticleDetailScreen({ route, navigation }) {
   const { article } = route.params;
-  const insets = useSafeAreaInsets(); // Deteta dinamicamente a barra do sistema Android
+  const insets = useSafeAreaInsets();
+  const { t, translateCategory } = useLanguage();
+
   const [currentUserId, setCurrentUserId] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [activePhotoIndex, setActivePhotoIndex] = useState(0);
@@ -56,29 +59,75 @@ export default function ArticleDetailScreen({ route, navigation }) {
     }
   };
 
+  // Verificação de regra: Requer pelo menos 1 artigo publicado antes de contactar
+  const handleInitiateChat = async () => {
+    try {
+      if (!currentUserId) {
+        Alert.alert(t('warning'), t('sessionRequired'));
+        return;
+      }
+
+      const response = await api.get('/artigos', {
+        params: { isBackoffice: 'true', limit: 100 }
+      });
+      const allArticles = response.data.artigos || response.data || [];
+
+      // Filtra artigos pertencentes ao utilizador autenticado
+      const userArticles = allArticles.filter(
+        (art) => Number(art.utilizador_id) === Number(currentUserId)
+      );
+
+      // REGRA: Pelo menos 1 artigo publicado
+      if (userArticles.length === 0) {
+        Alert.alert(
+          t('articleRequiredTitle'),
+          t('articleRequiredMsg'),
+          [
+            { text: t('notNow'), style: 'cancel' },
+            {
+              text: t('createAd'),
+              onPress: () => navigation.navigate('CreateArticleScreen')
+            }
+          ]
+        );
+        return;
+      }
+
+      navigation.navigate('Chat', {
+        recipientId: article.utilizador_id,
+        recipientName: article.utilizador?.nome || t('iptUser'),
+        articleId: article.id,
+        articleTitle: article.titulo
+      });
+    } catch (error) {
+      console.error('Erro ao verificar artigos do utilizador:', error);
+      Alert.alert(t('error'), 'Erro ao processar.');
+    }
+  };
+
   // Função para apagar o artigo
   const handleDeleteArticle = () => {
     Alert.alert(
-      'Eliminar Artigo',
-      'Tens a certeza de que queres eliminar este artigo? Esta ação não pode ser revertida.',
+      t('delete'),
+      t('deleteArticleConfirm'),
       [
-        { text: 'Cancelar', style: 'cancel' },
+        { text: t('cancel'), style: 'cancel' },
         {
-          text: 'Eliminar',
+          text: t('delete'),
           style: 'destructive',
           onPress: async () => {
             try {
               setIsDeleting(true);
               await api.delete(`/artigos/${article.id}`);
-              Alert.alert('Sucesso', 'Artigo eliminado com sucesso!', [
+              Alert.alert(t('success'), t('articleDeletedSuccess'), [
                 {
-                  text: 'OK',
+                  text: t('ok'),
                   onPress: () => navigation.navigate('Main')
                 }
               ]);
             } catch (error) {
               console.error('Erro ao eliminar artigo:', error);
-              Alert.alert('Erro', error.response?.data?.message || 'Falha ao eliminar o artigo.');
+              Alert.alert(t('error'), error.response?.data?.message || t('failedDeleteArticle'));
             } finally {
               setIsDeleting(false);
             }
@@ -94,10 +143,10 @@ export default function ArticleDetailScreen({ route, navigation }) {
       <ScrollView
         contentContainerStyle={[
           styles.scrollContent,
-          { paddingBottom: 100 + insets.bottom } // Compensa o scroll para o texto final não ficar oculto atrás dos botões
+          { paddingBottom: 100 + insets.bottom }
         ]}
       >
-        {/* Carrossel de Imagens com suporte a Arrastar e Zoom */}
+        {/* Carrossel de Imagens */}
         {photos.length > 0 ? (
           <View style={styles.carouselContainer}>
             <ScrollView
@@ -124,8 +173,6 @@ export default function ArticleDetailScreen({ route, navigation }) {
                 </ScrollView>
               ))}
             </ScrollView>
-
-            {/* Badge com a página atual ex: 1/3 */}
             {photos.length > 1 && (
               <View style={styles.counterBadge}>
                 <Text style={styles.counterText}>
@@ -137,43 +184,52 @@ export default function ArticleDetailScreen({ route, navigation }) {
         ) : (
           <View style={[styles.carouselContainer, styles.noImage]}>
             <Ionicons name="image-outline" size={60} color="#888" />
-            <Text style={styles.noImageText}>Sem imagem</Text>
+            <Text style={styles.noImageText}>{t('noImage')}</Text>
           </View>
         )}
 
         <View style={styles.content}>
           {/* Título e Categoria */}
           <Text style={styles.title}>{article.titulo}</Text>
-          <Text style={styles.category}>{article.categoria?.nome || 'Sem categoria'}</Text>
+          <Text style={styles.category}>{translateCategory(article.categoria?.nome) || 'Sem categoria'}</Text>
 
           {/* Badges de Estado e Disponibilidade */}
           <View style={styles.badgesRow}>
             <View style={[styles.badge, article.estado === 'Novo' ? styles.badgeGreen : styles.badgeOrange]}>
-              <Text style={styles.badgeText}>{article.estado || 'Usado'}</Text>
+              <Text style={styles.badgeText}>{article.estado === 'Novo' ? t('new') : t('used')}</Text>
             </View>
             <View style={[styles.badge, article.disponivel ? styles.badgeAvailable : styles.badgeUnavailable]}>
-              <Text style={styles.badgeText}>{article.disponivel ? 'Disponível' : 'Indisponível'}</Text>
+              <Text style={styles.badgeText}>{article.disponivel ? t('available') : t('unavailable')}</Text>
             </View>
           </View>
 
-          {/* Secção do Dono / Publicador */}
-          <View style={styles.ownerCard}>
-            <Ionicons name="person-circle-outline" size={40} color="#2e7d32" />
+          {/* Secção do Dono / Publicador (Clicável para abrir o Perfil) */}
+          <TouchableOpacity
+            style={styles.ownerCard}
+            activeOpacity={0.7}
+            onPress={() => {
+              if (article.utilizador_id) {
+                navigation.navigate('UserProfile', { userId: article.utilizador_id });
+              }
+            }}
+          >
+            <Ionicons name="person-circle-outline" size={42} color="#2e7d32" />
             <View style={styles.ownerInfo}>
-              <Text style={styles.ownerName}>{article.utilizador?.nome || 'Utilizador IPT'}</Text>
+              <Text style={styles.ownerName}>{article.utilizador?.nome || t('iptUser')}</Text>
               <Text style={styles.ownerEmail}>{article.utilizador?.email || ''}</Text>
             </View>
-          </View>
+            <Ionicons name="chevron-forward" size={20} color="#bbb" style={{ marginLeft: 'auto' }} />
+          </TouchableOpacity>
 
           {/* Descrição */}
-          <Text style={styles.sectionTitle}>Descrição</Text>
+          <Text style={styles.sectionTitle}>{t('description')}</Text>
           <Text style={styles.description}>
-            {article.descricao || 'Nenhuma descrição fornecida para este artigo.'}
+            {article.descricao || t('noDescription')}
           </Text>
         </View>
       </ScrollView>
 
-      {/* Rodapé Dinâmico com compensação da barra de navegação virtual */}
+      {/* Rodapé Dinâmico com compensação da barra do sistema */}
       <View
         style={[
           styles.footer,
@@ -191,7 +247,7 @@ export default function ArticleDetailScreen({ route, navigation }) {
               disabled={isDeleting}
             >
               <Ionicons name="pencil-outline" size={18} color="#fff" style={{ marginRight: 6 }} />
-              <Text style={styles.actionButtonText}>Editar</Text>
+              <Text style={styles.actionButtonText}>{t('edit')}</Text>
             </TouchableOpacity>
 
             {/* Botão de Apagar */}
@@ -205,7 +261,7 @@ export default function ArticleDetailScreen({ route, navigation }) {
               ) : (
                 <>
                   <Ionicons name="trash-outline" size={18} color="#fff" style={{ marginRight: 6 }} />
-                  <Text style={styles.actionButtonText}>Eliminar</Text>
+                  <Text style={styles.actionButtonText}>{t('delete')}</Text>
                 </>
               )}
             </TouchableOpacity>
@@ -214,17 +270,10 @@ export default function ArticleDetailScreen({ route, navigation }) {
           /* Botão visível para os outros utilizadores */
           <TouchableOpacity
             style={[styles.actionButton, styles.messageButton]}
-            onPress={() =>
-              navigation.navigate('Chat', {
-                recipientId: article.utilizador_id,
-                recipientName: article.utilizador?.nome || 'Utilizador IPT',
-                articleId: article.id,
-                articleTitle: article.titulo
-              })
-            }
+            onPress={handleInitiateChat}
           >
             <Ionicons name="chatbubbles-outline" size={20} color="#fff" style={{ marginRight: 8 }} />
-            <Text style={styles.actionButtonText}>Enviar Mensagem</Text>
+            <Text style={styles.actionButtonText}>{t('sendMessage')}</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -264,50 +313,51 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 14
   },
-  counterText: { 
-    color: '#fff', 
-    fontSize: 12, 
-    fontWeight: '700' 
+  counterText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '700'
   },
-  content: { 
-    padding: 18 
+  content: {
+    padding: 18
   },
-  title: { 
-    fontSize: 22, 
+  title: {
+    fontSize: 22,
     fontWeight: 'bold',
-    color: '#212529', 
-    marginBottom: 4 
+    color: '#212529',
+    marginBottom: 4
   },
-  category: { 
-    fontSize: 14, 
-    color: '#6c757d', 
-    marginBottom: 12 
+  category: {
+    fontSize: 14,
+    color: '#6c757d',
+    marginBottom: 12
   },
-  badgesRow: { 
-    flexDirection: 'row', 
-    gap: 8, marginBottom: 18
- },
-  badge: { 
-    paddingHorizontal: 10, 
-    paddingVertical: 4, 
-    borderRadius: 6 
+  badgesRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 18
   },
-  badgeGreen: { 
-    backgroundColor: '#d4edda' 
+  badge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 6
   },
-  badgeOrange: { 
-    backgroundColor: '#fff3cd' 
+  badgeGreen: {
+    backgroundColor: '#d4edda'
   },
-  badgeAvailable: { 
-    backgroundColor: '#cce5ff' 
+  badgeOrange: {
+    backgroundColor: '#fff3cd'
   },
-  badgeUnavailable: { 
-    backgroundColor: '#f8d7da' 
+  badgeAvailable: {
+    backgroundColor: '#cce5ff'
   },
-  badgeText: { 
-    fontSize: 12, 
-    fontWeight: '600', 
-    color: '#333' 
+  badgeUnavailable: {
+    backgroundColor: '#f8d7da'
+  },
+  badgeText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#333'
   },
   ownerCard: {
     flexDirection: 'row',
@@ -319,28 +369,28 @@ const styles = StyleSheet.create({
     borderColor: '#e9ecef',
     marginBottom: 20
   },
-  ownerInfo: { 
-    marginLeft: 12 
+  ownerInfo: {
+    marginLeft: 12
   },
   ownerName: {
-     fontSize: 15, 
-     fontWeight: '700', 
-     color: '#333' 
-    },
-  ownerEmail: { 
-    fontSize: 13, 
-    color: '#6c757d' 
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#333'
   },
-  sectionTitle: { 
-    fontSize: 16, 
-    fontWeight: 'bold', 
-    color: '#333', 
-    marginBottom: 8 
+  ownerEmail: {
+    fontSize: 13,
+    color: '#6c757d'
   },
-  description: { 
-    fontSize: 15, 
-    lineHeight: 22, 
-    color: '#495057' 
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 8
+  },
+  description: {
+    fontSize: 15,
+    lineHeight: 22,
+    color: '#495057'
   },
   footer: {
     position: 'absolute',

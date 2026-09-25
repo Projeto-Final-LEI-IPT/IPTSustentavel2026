@@ -14,14 +14,24 @@ import ArticleDetailScreen from './screens/ArticleDetailScreen';
 import EditArticleScreen from './screens/EditArticleScreen';
 import ChatScreen from './screens/ChatScreen';
 import ConversationsScreen from './screens/ConversationsScreen';
+import ProfileScreen from './screens/ProfileScreen';
+import { LanguageProvider, useLanguage } from './context/LanguageContext';
+import LanguageSelectModal from './components/LanguageSelectModal';
 import api from './services/api';
 
 function EmptyScreen() {
   return <View style={styles.center} />;
 }
 
-function ProfilePlaceholder() {
-  return <View style={styles.center} />;
+// Wrapper para permitir que CreateArticleScreen funcione na Stack navigation
+function CreateArticleScreenWrapper({ navigation }) {
+  return (
+    <CreateArticleScreen
+      visible={true}
+      onClose={() => navigation.goBack()}
+      onArticleCreated={() => navigation.goBack()}
+    />
+  );
 }
 
 const Tab = createBottomTabNavigator();
@@ -55,7 +65,8 @@ function isTokenExpired(token) {
 function MainTabNavigator({ onLogout }) {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
-  const insets = useSafeAreaInsets(); // Obtém a barra de navegação inferior do dispositivo
+  const insets = useSafeAreaInsets();
+  const { t, language } = useLanguage();
 
   const fetchUnreadCount = useCallback(async () => {
     try {
@@ -88,6 +99,7 @@ function MainTabNavigator({ onLogout }) {
   return (
     <>
       <Tab.Navigator
+        key={`tab-${language}`}
         screenOptions={({ route }) => ({
           headerStyle: {
             backgroundColor: '#2e7d32',
@@ -135,7 +147,10 @@ function MainTabNavigator({ onLogout }) {
       >
         <Tab.Screen
           name="Início"
-          options={{ title: 'IPT Sustentável' }}
+          options={{ 
+            title: 'IPT Sustentável',
+            tabBarLabel: t('home') 
+          }}
         >
           {(props) => <HomeScreen {...props} onLogout={onLogout} />}
         </Tab.Screen>
@@ -148,7 +163,10 @@ function MainTabNavigator({ onLogout }) {
               setShowCreateModal(true);
             },
           }}
-          options={{ title: 'Criar Anúncio' }}
+          options={{ 
+            title: t('createAd'),
+            tabBarLabel: t('create')
+          }}
         />
         <Tab.Screen
           name="Mensagens"
@@ -159,7 +177,8 @@ function MainTabNavigator({ onLogout }) {
             },
           }}
           options={{
-            title: 'Conversas',
+            title: t('conversations'),
+            tabBarLabel: t('messages'),
             tabBarBadge: unreadCount > 0 ? unreadCount : undefined,
             tabBarBadgeStyle: {
               backgroundColor: '#dc3545',
@@ -176,9 +195,13 @@ function MainTabNavigator({ onLogout }) {
         />
         <Tab.Screen
           name="Perfil"
-          component={ProfilePlaceholder}
-          options={{ title: 'O Meu Perfil' }}
-        />
+          options={{ 
+            title: t('myProfile'),
+            tabBarLabel: t('profile')
+          }}
+        >
+          {(props) => <ProfileScreen {...props} onLogout={onLogout} />}
+        </Tab.Screen>
       </Tab.Navigator>
 
       <CreateArticleScreen
@@ -190,9 +213,10 @@ function MainTabNavigator({ onLogout }) {
   );
 }
 
-export default function App() {
+function AppNavigator() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
+  const { t, language } = useLanguage();
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -227,62 +251,89 @@ export default function App() {
   }
 
   return (
-    <SafeAreaProvider>
-      <NavigationContainer>
-        <Stack.Navigator>
-          {isAuthenticated ? (
-            <>
-              <Stack.Screen name="Main" options={{ headerShown: false }}>
-                {(props) => (
-                  <MainTabNavigator
-                    {...props}
-                    onLogout={() => setIsAuthenticated(false)}
-                  />
-                )}
-              </Stack.Screen>
-              <Stack.Screen
-                name="ArticleDetail"
-                component={ArticleDetailScreen}
-                options={{
-                  title: 'Detalhe do Artigo',
-                  headerStyle: { backgroundColor: '#2e7d32' },
-                  headerTintColor: '#fff',
-                  headerTitleStyle: { fontWeight: '700' },
-                }}
-              />
-              <Stack.Screen
-                name="EditArticleScreen"
-                component={EditArticleScreen}
-                options={{
-                  title: 'Editar Artigo',
-                  headerStyle: { backgroundColor: '#2e7d32' },
-                  headerTintColor: '#fff',
-                  headerTitleStyle: { fontWeight: '700' },
-                }}
-              />
-              <Stack.Screen
-                name="Chat"
-                component={ChatScreen}
-                options={({ route }) => ({
-                  title: route.params?.recipientName || 'Conversa',
-                  headerStyle: { backgroundColor: '#2e7d32' },
-                  headerTintColor: '#fff',
-                  headerTitleStyle: { fontWeight: '700' },
-                })}
-              />
-            </>
-          ) : (
-            <Stack.Screen name="Login" options={{ headerShown: false }}>
+    <NavigationContainer key={`nav-${language}`}>
+      <Stack.Navigator>
+        {isAuthenticated ? (
+          <>
+            <Stack.Screen name="Main" options={{ headerShown: false }}>
               {(props) => (
-                <LoginScreen
+                <MainTabNavigator
                   {...props}
-                  onLoginSuccess={() => setIsAuthenticated(true)}
+                  onLogout={() => setIsAuthenticated(false)}
                 />
               )}
             </Stack.Screen>
-          )}
-        </Stack.Navigator>
-      </NavigationContainer>
+            <Stack.Screen
+              name="ArticleDetail"
+              component={ArticleDetailScreen}
+              options={{
+                title: t('articleDetails') || 'Detalhes',
+                headerStyle: { backgroundColor: '#2e7d32' },
+                headerTintColor: '#fff',
+                headerTitleStyle: { fontWeight: '700' },
+              }}
+            />
+            <Stack.Screen
+              name="EditArticleScreen"
+              component={EditArticleScreen}
+              options={{
+                title: t('editArticle') || 'Editar',
+                headerStyle: { backgroundColor: '#2e7d32' },
+                headerTintColor: '#fff',
+                headerTitleStyle: { fontWeight: '700' },
+              }}
+            />
+            <Stack.Screen
+              name="Chat"
+              component={ChatScreen}
+              options={({ route }) => ({
+                title: route.params?.recipientName || t('conversations'),
+                headerStyle: { backgroundColor: '#2e7d32' },
+                headerTintColor: '#fff',
+                headerTitleStyle: { fontWeight: '700' },
+              })}
+            />
+            <Stack.Screen
+              name="UserProfile"
+              component={ProfileScreen}
+              options={{
+                title: t('userProfile') || 'Perfil',
+                headerStyle: { backgroundColor: '#2e7d32' },
+                headerTintColor: '#fff',
+                headerTitleStyle: { fontWeight: '700' },
+              }}
+            />
+            <Stack.Screen
+              name="CreateArticleScreen"
+              component={CreateArticleScreenWrapper}
+              options={{
+                headerShown: false,
+                presentation: 'modal'
+              }}
+            />
+          </>
+        ) : (
+          <Stack.Screen name="Login" options={{ headerShown: false }}>
+            {(props) => (
+              <LoginScreen
+                {...props}
+                onLoginSuccess={() => setIsAuthenticated(true)}
+              />
+            )}
+          </Stack.Screen>  
+        )}
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+}
+
+export default function App() {
+  return (
+    <SafeAreaProvider>
+      <LanguageProvider>
+        <AppNavigator />
+        <LanguageSelectModal />
+      </LanguageProvider>
     </SafeAreaProvider>
   );
 }

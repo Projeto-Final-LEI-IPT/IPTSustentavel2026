@@ -5,7 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Cria a instância do Axios com o endereço do teu servidor
 const api = axios.create({
-  baseURL: 'http://192.168.1.4:3001/api', 
+  baseURL: 'http://192.168.1.5:3001/api', 
   timeout: 10000, // Tempo limite de 10 segundos
 });
 

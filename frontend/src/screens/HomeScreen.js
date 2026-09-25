@@ -16,8 +16,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import api from '../services/api';
+import { useLanguage } from '../context/LanguageContext';
 
-export default function HomeScreen({ navigation, onLogout }) {
+export default function HomeScreen({ navigation }) {
+  const { t, language, setShowLanguageModal, translateCategory } = useLanguage();
+
   // Estados principais de dados
   const [artigos, setArtigos] = useState([]);
   const [categorias, setCategorias] = useState([]);
@@ -34,50 +37,22 @@ export default function HomeScreen({ navigation, onLogout }) {
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
-  // Função para efetuar logout e limpar sessão
-  const handleLogout = useCallback(() => {
-    Alert.alert(
-      'Terminar Sessão',
-      'Tem a certeza de que deseja sair?',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Sair',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              // 1. Limpa os dados de autenticação locais
-              await AsyncStorage.multiRemove(['token', 'userId', 'user']);
-
-              // 2. Altera o estado do App.js para desmontar o Main e montar o Login
-              if (onLogout) {
-                onLogout();
-              }
-            } catch (error) {
-              console.error('Erro ao terminar sessão:', error);
-            }
-          }
-        }
-      ]
-    );
-  }, [onLogout]);
-
-  // Configurar o botão de Logout no cabeçalho do ecrã
+  // Botão de seleção de Idioma com bandeira no canto superior direito
   useEffect(() => {
     navigation.setOptions({
       headerRight: () => (
         <TouchableOpacity
-          onPress={handleLogout}
-          style={{ marginRight: 16 }}
+          onPress={() => setShowLanguageModal(true)}
+          style={styles.languageButton}
           activeOpacity={0.7}
         >
-          <Ionicons name="log-out-outline" size={24} color="#ffffff" />
+          <Text style={styles.flagIcon}>{language === 'en' ? '🇬🇧' : '🇵🇹'}</Text>
+          <Ionicons name="chevron-down" size={14} color="#ffffff" style={{ marginLeft: 2 }} />
         </TouchableOpacity>
       ),
     });
-  }, [navigation, handleLogout]);
+  }, [navigation, language, setShowLanguageModal]);
 
-  // Carregar ID do utilizador autenticado
   useEffect(() => {
     const getUserId = async () => {
       const id = await AsyncStorage.getItem('userId');
@@ -86,7 +61,6 @@ export default function HomeScreen({ navigation, onLogout }) {
     getUserId();
   }, []);
 
-  // 1. Carregar Categorias
   const fetchCategorias = async () => {
     try {
       const response = await api.get('/categorias');
@@ -96,7 +70,6 @@ export default function HomeScreen({ navigation, onLogout }) {
     }
   };
 
-  // 2. Carregar Artigos
   const fetchArtigos = useCallback(async (pageNumber = 1, shouldAppend = false) => {
     try {
       if (pageNumber === 1 && !shouldAppend) setLoading(true);
@@ -157,6 +130,49 @@ export default function HomeScreen({ navigation, onLogout }) {
     setSelectedCategory(prev => (prev === catId ? null : catId));
   };
 
+  const handleInitiateChat = async (item) => {
+    try {
+      if (!currentUserId) {
+        Alert.alert(t('warning'), t('articleRequiredMsg'));
+        return;
+      }
+
+      const response = await api.get('/artigos', {
+        params: { isBackoffice: 'true', limit: 100 }
+      });
+      const allArticles = response.data?.artigos || response.data || [];
+
+      const userArticles = allArticles.filter(
+        (art) => Number(art.utilizador_id) === Number(currentUserId)
+      );
+
+      if (userArticles.length === 0) {
+        Alert.alert(
+          t('articleRequiredTitle'),
+          t('articleRequiredMsg'),
+          [
+            { text: t('notNow'), style: 'cancel' },
+            {
+              text: t('createAd'),
+              onPress: () => navigation.navigate('CreateArticleScreen')
+            }
+          ]
+        );
+        return;
+      }
+
+      navigation.navigate('Chat', {
+        recipientId: item.utilizador_id,
+        recipientName: item.utilizador?.nome || 'Utilizador IPT',
+        articleId: item.id,
+        articleTitle: item.titulo
+      });
+    } catch (error) {
+      console.error('Erro ao verificar artigos do utilizador:', error);
+      Alert.alert(t('error'), 'Erro ao processar pedido.');
+    }
+  };
+
   const renderArticleCard = ({ item }) => {
     const isOwner = currentUserId && item.utilizador_id?.toString() === currentUserId;
     
@@ -189,7 +205,7 @@ export default function HomeScreen({ navigation, onLogout }) {
         ) : (
           <View style={[styles.cardImage, styles.noImageContainer]}>
             <Ionicons name="image-outline" size={40} color="#888" />
-            <Text style={styles.noImageText}>Sem imagem</Text>
+            <Text style={styles.noImageText}>{t('noImage')}</Text>
           </View>
         )}
 
@@ -210,30 +226,28 @@ export default function HomeScreen({ navigation, onLogout }) {
             ) : (
               <TouchableOpacity
                 style={styles.actionIconBtn}
-                onPress={() =>
-                  navigation.navigate('Chat', {
-                    recipientId: item.utilizador_id,
-                    recipientName: item.utilizador?.nome || 'Utilizador IPT',
-                    articleId: item.id,
-                    articleTitle: item.titulo
-                  })
-                }
+                onPress={() => handleInitiateChat(item)}
               >
                 <Ionicons name="chatbubbles" size={22} color="#2e7d32" />
               </TouchableOpacity>
             )}
           </View>
 
+          {/* Tradução dinâmica da categoria no cartão do artigo */}
           <Text style={styles.cardCategory}>
-            {item.categoria?.nome || 'Sem categoria'}
+            {translateCategory(item.categoria?.nome) || 'Sem categoria'}
           </Text>
 
           <View style={styles.badgesRow}>
             <View style={[styles.badge, item.estado === 'Novo' ? styles.badgeGreen : styles.badgeOrange]}>
-              <Text style={styles.badgeText}>{item.estado || 'Usado'}</Text>
+              <Text style={styles.badgeText}>
+                {item.estado === 'Novo' ? t('new') : t('used')}
+              </Text>
             </View>
             <View style={[styles.badge, item.disponivel ? styles.badgeAvailable : styles.badgeUnavailable]}>
-              <Text style={styles.badgeText}>{item.disponivel ? 'Disponível' : 'Indisponível'}</Text>
+              <Text style={styles.badgeText}>
+                {item.disponivel ? t('available') : t('unavailable')}
+              </Text>
             </View>
           </View>
         </View>
@@ -251,7 +265,7 @@ export default function HomeScreen({ navigation, onLogout }) {
           <Ionicons name="search" size={20} color="#777" style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
-            placeholder="Pesquisar artigos..."
+            placeholder={t('searchPlaceholder')}
             placeholderTextColor="#888"
             value={searchTerm}
             onChangeText={setSearchTerm}
@@ -267,7 +281,7 @@ export default function HomeScreen({ navigation, onLogout }) {
         </View>
       </View>
 
-      {/* 2. Carrossel Horizontal de Categorias */}
+      {/* 2. Categorias - com tradução dinâmica */}
       <View style={styles.categoriesSection}>
         <FlatList
           horizontal
@@ -283,7 +297,7 @@ export default function HomeScreen({ navigation, onLogout }) {
                 onPress={() => toggleCategory(item.id)}
               >
                 <Text style={[styles.categoryChipText, isActive && styles.categoryChipTextActive]}>
-                  {item.nome}
+                  {translateCategory(item.nome)}
                 </Text>
               </TouchableOpacity>
             );
@@ -291,14 +305,14 @@ export default function HomeScreen({ navigation, onLogout }) {
         />
       </View>
 
-      {/* 3. Filtro Rápido de Condição (Novo / Usado) */}
+      {/* 3. Filtro Novo / Usado */}
       <View style={styles.conditionRow}>
         <TouchableOpacity
           style={[styles.conditionChip, selectedCondition === 'Novo' && styles.conditionChipActive]}
           onPress={() => toggleCondition('Novo')}
         >
           <Text style={[styles.conditionText, selectedCondition === 'Novo' && styles.conditionTextActive]}>
-            Novo
+            {t('new')}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -306,12 +320,12 @@ export default function HomeScreen({ navigation, onLogout }) {
           onPress={() => toggleCondition('Usado')}
         >
           <Text style={[styles.conditionText, selectedCondition === 'Usado' && styles.conditionTextActive]}>
-            Usado
+            {t('used')}
           </Text>
         </TouchableOpacity>
       </View>
 
-      {/* 4. Lista Vertical de Artigos */}
+      {/* 4. Lista de Artigos */}
       {loading && page === 1 ? (
         <View style={styles.centerLoading}>
           <ActivityIndicator size="large" color="#2e7d32" />
@@ -328,7 +342,7 @@ export default function HomeScreen({ navigation, onLogout }) {
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <Ionicons name="cube-outline" size={60} color="#bbb" />
-              <Text style={styles.emptyText}>Nenhum artigo encontrado.</Text>
+              <Text style={styles.emptyText}>{t('noArticlesFound')}</Text>
             </View>
           }
           ListFooterComponent={
@@ -346,6 +360,18 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f8f9fa'
+  },
+  languageButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 16
+  },
+  flagIcon: {
+    fontSize: 18
   },
   searchSection: {
     paddingHorizontal: 16,

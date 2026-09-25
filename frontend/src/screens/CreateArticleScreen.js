@@ -18,8 +18,11 @@ import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from '../services/api';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function CreateArticleScreen({ visible, onClose, onArticleCreated }) {
+  const { t, translateCategory } = useLanguage();
+
   const [titulo, setTitulo] = useState('');
   const [descricao, setDescricao] = useState('');
   const [categoriaId, setCategoriaId] = useState('');
@@ -47,14 +50,14 @@ export default function CreateArticleScreen({ visible, onClose, onArticleCreated
       }
     } catch (error) {
       console.error('Erro ao carregar categorias:', error);
-      Alert.alert('Erro', 'Não foi possível carregar as categorias.');
+      Alert.alert(t('error'), 'Não foi possível carregar as categorias.');
     }
   };
 
   // Selecionar imagem da galeria com corte quadrado nativo (1:1) e validação robusta de permissões
   const pickImage = async () => {
     if (photos.length >= 5) {
-      Alert.alert('Limite atingido', 'Podes adicionar no máximo 5 imagens.');
+      Alert.alert(t('warning'), t('photoLimit'));
       return;
     }
 
@@ -68,11 +71,11 @@ export default function CreateArticleScreen({ visible, onClose, onArticleCreated
         // Deteta se o utilizador já bloqueou permanentemente (comum no APK)
         if (!currentStatus.canAskAgain && currentStatus.status === 'denied') {
           Alert.alert(
-            'Permissão Necessária',
-            'A aplicação não tem autorização para aceder à galeria. Por favor, ativa a permissão nas definições do dispositivo.',
+            t('permissionRequired'),
+            t('galleryPermissionMsg'),
             [
-              { text: 'Cancelar', style: 'cancel' },
-              { text: 'Abrir Definições', onPress: () => Linking.openSettings() }
+              { text: t('cancel'), style: 'cancel' },
+              { text: t('ok'), onPress: () => Linking.openSettings() }
             ]
           );
           return;
@@ -85,8 +88,8 @@ export default function CreateArticleScreen({ visible, onClose, onArticleCreated
       // 3. Se o utilizador recusou o acesso
       if (!isGranted) {
         Alert.alert(
-          'Permissão Necessária',
-          'Precisamos de autorização de acesso às fotos para adicionar imagens ao teu anúncio.'
+          t('permissionRequired'),
+          t('galleryPermissionMsg')
         );
         return;
       }
@@ -104,7 +107,7 @@ export default function CreateArticleScreen({ visible, onClose, onArticleCreated
       }
     } catch (error) {
       console.error('Erro ao selecionar foto:', error);
-      Alert.alert('Erro', 'Ocorreu um erro ao tentar aceder à galeria.');
+      Alert.alert(t('error'), 'Ocorreu um erro ao tentar aceder à galeria.');
     }
   };
 
@@ -122,7 +125,7 @@ export default function CreateArticleScreen({ visible, onClose, onArticleCreated
       const filename = uri.split('/').pop() || `foto_${index}.jpg`;
       const extension = filename.split('.').pop()?.toLowerCase();
 
-      // Normalização estrita do tipo MIME para coincidir com o ALLOWED_MIME_TYPES do Multer
+      // Normalização estrita do tipo MIME
       let mimeType = 'image/jpeg';
       if (extension === 'png') mimeType = 'image/png';
       else if (extension === 'webp') mimeType = 'image/webp';
@@ -143,14 +146,22 @@ export default function CreateArticleScreen({ visible, onClose, onArticleCreated
     });
   };
 
-  // Submeter o artigo
+  // Submeter o artigo com validação obrigatória de foto
   const handleSubmit = async () => {
     if (!titulo.trim()) {
-      Alert.alert('Atenção', 'O título é obrigatório.');
+      Alert.alert(t('warning'), t('titleRequired'));
       return;
     }
     if (!categoriaId) {
-      Alert.alert('Atenção', 'Seleciona uma categoria.');
+      Alert.alert(t('warning'), t('categoryRequired'));
+      return;
+    }
+    // REGRA: Pelo menos uma imagem obrigatória
+    if (photos.length === 0) {
+      Alert.alert(
+        t('warning'),
+        t('photoRequired')
+      );
       return;
     }
 
@@ -175,18 +186,18 @@ export default function CreateArticleScreen({ visible, onClose, onArticleCreated
 
       const newArticleId = response.data?.id;
 
-      // 2. Fazer upload das fotos caso existam
+      // 2. Fazer upload das fotos
       if (newArticleId && photos.length > 0) {
         await uploadPhotos(newArticleId, token);
       }
 
-      Alert.alert('Sucesso', 'Anúncio publicado com sucesso!');
+      Alert.alert(t('success'), t('listingPublishedSuccess'));
       resetForm();
       onClose();
       if (onArticleCreated) onArticleCreated();
     } catch (error) {
       console.error('Erro ao criar artigo:', error);
-      Alert.alert('Erro', error.response?.data?.message || 'Falha ao publicar o artigo.');
+      Alert.alert(t('error'), error.response?.data?.message || t('failedPublishListing'));
     } finally {
       setLoading(false);
     }
@@ -213,7 +224,7 @@ export default function CreateArticleScreen({ visible, onClose, onArticleCreated
         <View style={styles.container}>
           {/* Cabeçalho */}
           <View style={styles.header}>
-            <Text style={styles.headerTitle}>Criar Novo Anúncio</Text>
+            <Text style={styles.headerTitle}>{t('createListingTitle')}</Text>
             <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
               <Ionicons name="close" size={24} color="#333" />
             </TouchableOpacity>
@@ -221,10 +232,10 @@ export default function CreateArticleScreen({ visible, onClose, onArticleCreated
 
           <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
             {/* Título */}
-            <Text style={styles.label}>Título do Anúncio * ({25 - titulo.length} rest.)</Text>
+            <Text style={styles.label}>{t('listingTitleLabel')} ({25 - titulo.length})</Text>
             <TextInput
               style={styles.input}
-              placeholder="Ex: Livro de Cálculo I"
+              placeholder={t('listingTitlePlaceholder')}
               placeholderTextColor="#888"
               value={titulo}
               onChangeText={text => setTitulo(text.slice(0, 25))}
@@ -232,7 +243,7 @@ export default function CreateArticleScreen({ visible, onClose, onArticleCreated
             />
 
             {/* Categoria */}
-            <Text style={styles.label}>Categoria *</Text>
+            <Text style={styles.label}>{t('categoryLabel')}</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryScroll}>
               {categories.map(cat => {
                 const isSelected = categoriaId === cat.id.toString();
@@ -243,7 +254,7 @@ export default function CreateArticleScreen({ visible, onClose, onArticleCreated
                     onPress={() => setCategoriaId(cat.id.toString())}
                   >
                     <Text style={[styles.chipText, isSelected && styles.chipTextActive]}>
-                      {cat.nome}
+                      {translateCategory(cat.nome)}
                     </Text>
                   </TouchableOpacity>
                 );
@@ -251,7 +262,7 @@ export default function CreateArticleScreen({ visible, onClose, onArticleCreated
             </ScrollView>
 
             {/* Estado / Condição */}
-            <Text style={styles.label}>Estado do Item</Text>
+            <Text style={styles.label}>{t('conditionLabel')}</Text>
             <View style={styles.row}>
               {['Novo', 'Usado'].map(cond => (
                 <TouchableOpacity
@@ -260,17 +271,17 @@ export default function CreateArticleScreen({ visible, onClose, onArticleCreated
                   onPress={() => setEstado(cond)}
                 >
                   <Text style={[styles.stateText, estado === cond && styles.stateTextActive]}>
-                    {cond}
+                    {cond === 'Novo' ? t('new') : t('used')}
                   </Text>
                 </TouchableOpacity>
               ))}
             </View>
 
             {/* Descrição */}
-            <Text style={styles.label}>Descrição ({100 - descricao.length} rest.)</Text>
+            <Text style={styles.label}>{t('descriptionLabel')} ({100 - descricao.length})</Text>
             <TextInput
               style={[styles.input, styles.textArea]}
-              placeholder="Descreve o estado, detalhes ou motivo da troca..."
+              placeholder={t('descriptionPlaceholder')}
               placeholderTextColor="#888"
               value={descricao}
               onChangeText={text => setDescricao(text.slice(0, 100))}
@@ -279,8 +290,8 @@ export default function CreateArticleScreen({ visible, onClose, onArticleCreated
               numberOfLines={4}
             />
 
-            {/* Upload de Fotos */}
-            <Text style={styles.label}>Fotografias ({photos.length}/5)</Text>
+            {/* Upload de Fotos - com indicação visual de obrigatoriedade */}
+            <Text style={styles.label}>{t('photosLabel')} ({photos.length}/5)</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.photosScroll}>
               {photos.map((uri, index) => (
                 <View key={index} style={styles.photoWrapper}>
@@ -294,7 +305,7 @@ export default function CreateArticleScreen({ visible, onClose, onArticleCreated
               {photos.length < 5 && (
                 <TouchableOpacity style={styles.addPhotoBtn} onPress={pickImage}>
                   <Ionicons name="camera-outline" size={28} color="#2e7d32" />
-                  <Text style={styles.addPhotoText}>Adicionar</Text>
+                  <Text style={styles.addPhotoText}>{t('addPhoto')}</Text>
                 </TouchableOpacity>
               )}
             </ScrollView>
@@ -308,7 +319,7 @@ export default function CreateArticleScreen({ visible, onClose, onArticleCreated
               {loading ? (
                 <ActivityIndicator color="#fff" />
               ) : (
-                <Text style={styles.submitBtnText}>Publicar Anúncio</Text>
+                <Text style={styles.submitBtnText}>{t('publishListing')}</Text>
               )}
             </TouchableOpacity>
           </ScrollView>
