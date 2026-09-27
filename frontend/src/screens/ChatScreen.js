@@ -10,6 +10,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   StatusBar,
+  Keyboard,
   Alert
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -29,10 +30,29 @@ export default function ChatScreen({ route, navigation }) {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [hasCheckedArticles, setHasCheckedArticles] = useState(false);
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
 
   const flatListRef = useRef(null);
   const headerHeight = useHeaderHeight();
   const insets = useSafeAreaInsets();
+
+  // Escutar abertura e fecho do teclado para ajustar o padding inferior em Android
+  useEffect(() => {
+    const showSubscription = Keyboard.addListener('keyboardDidShow', () => {
+      setKeyboardVisible(true);
+      setTimeout(() => {
+        flatListRef.current?.scrollToEnd({ animated: true });
+      }, 100);
+    });
+    const hideSubscription = Keyboard.addListener('keyboardDidHide', () => {
+      setKeyboardVisible(false);
+    });
+
+    return () => {
+      showSubscription.remove();
+      hideSubscription.remove();
+    };
+  }, []);
 
   useEffect(() => {
     navigation.setOptions({
@@ -230,12 +250,18 @@ export default function ChatScreen({ route, navigation }) {
     );
   };
 
+  // Cálculo dinâmico do padding inferior: quando o teclado está fechado respeita a barra do Android (insets.bottom)[cite: 7]
+  // Quando o teclado abre, reduz para 8px para não haver espaço duplo[cite: 7]
+  const dynamicBottomPadding = keyboardVisible
+    ? 8
+    : Math.max(insets.bottom, 12);
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#2e7d32" />
 
       <KeyboardAvoidingView
-        style={styles.container}
+        style={styles.keyboardContainer}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={Platform.OS === 'ios' ? headerHeight : 0}
       >
@@ -272,8 +298,8 @@ export default function ChatScreen({ route, navigation }) {
           />
         )}
 
-        {/* Caixa de Entrada com compensação da barra de navegação */}
-        <View style={[styles.inputContainer, { paddingBottom: Math.max(insets.bottom, 10) }]}>
+        {/* Caixa de Entrada com espaçamento adaptado aos botões nativos do Android */}
+        <View style={[styles.inputContainer, { paddingBottom: dynamicBottomPadding }]}>
           <TextInput
             style={styles.textInput}
             placeholder={t('chatPlaceholder')}
@@ -286,7 +312,7 @@ export default function ChatScreen({ route, navigation }) {
             onFocus={() => {
               setTimeout(() => {
                 flatListRef.current?.scrollToEnd({ animated: true });
-              }, 200);
+              }, 250);
             }}
           />
           <TouchableOpacity
@@ -309,9 +335,14 @@ export default function ChatScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa'
+    backgroundColor: '#ffffff'
   },
   
+  keyboardContainer: {
+    flex: 1,
+    backgroundColor: '#f8f9fa'
+  },
+
   articleBanner: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -429,7 +460,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-end',
-    marginTop: 4
+    marginVertical: 4
   },
 
   timeText: {
