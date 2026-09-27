@@ -85,6 +85,22 @@ const translations = {
     articleRequiredMsg: 'Para incentivar as trocas na plataforma, precisas de ter pelo menos 1 artigo publicado antes de contactares outros utilizadores.',
     notNow: 'Agora não',
 
+    // Painel de Administração (Backoffice)
+    adminDashboard: 'Painel de Administração',
+    adminDashboardBtn: 'Painel de Administração',
+    articlesTab: 'Artigos',
+    usersTab: 'Utilizadores',
+    searchArticlesPlaceholder: 'Pesquisar artigos por título...',
+    searchUsersPlaceholder: 'Pesquisar utilizadores por nome ou email...',
+    active: 'Ativo',
+    inactive: 'Inativo',
+    activate: 'Ativar',
+    deactivate: 'Desativar',
+    selfActionError: 'Não podes desativar a tua própria conta de administrador.',
+    selfIndicator: '(Tu)',
+    noRecordsFound: 'Nenhum registo encontrado.',
+    categoryLabelId: 'Categoria ID',
+
     // Categorias da Base de Dados
     categories: {
       'Livros': 'Livros',
@@ -177,6 +193,22 @@ const translations = {
     articleRequiredTitle: 'Listing Required',
     articleRequiredMsg: 'To encourage community exchanges, you must have at least 1 published listing before contacting other users.',
     notNow: 'Not now',
+
+    // Painel de Administração (Backoffice)
+    adminDashboard: 'Admin Dashboard',
+    adminDashboardBtn: 'Admin Dashboard',
+    articlesTab: 'Listings',
+    usersTab: 'Users',
+    searchArticlesPlaceholder: 'Search listings by title...',
+    searchUsersPlaceholder: 'Search users by name or email...',
+    active: 'Active',
+    inactive: 'Inactive',
+    activate: 'Activate',
+    deactivate: 'Deactivate',
+    selfActionError: 'You cannot deactivate your own administrator account.',
+    selfIndicator: '(You)',
+    noRecordsFound: 'No records found.',
+    categoryLabelId: 'Category ID',
 
     // Categorias da Base de Dados
     categories: {

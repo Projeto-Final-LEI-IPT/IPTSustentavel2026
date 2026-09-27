@@ -333,10 +333,12 @@ const styles = StyleSheet.create({
   flex: {
     flex: 1
   },
+  
   container: {
     flex: 1,
     backgroundColor: '#f8f9fa'
   },
+
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -347,17 +349,21 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderColor: '#e9ecef'
   },
+
   headerTitle: {
     fontSize: 18,
     fontWeight: '700',
     color: '#212529'
   },
+
   closeBtn: {
     padding: 4
   },
+
   scrollContent: {
     padding: 20
   },
+
   label: {
     fontSize: 13,
     fontWeight: '600',
@@ -365,6 +371,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     marginTop: 12
   },
+
   input: {
     backgroundColor: '#fff',
     borderRadius: 8,
@@ -375,15 +382,18 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: '#212529'
   },
+
   textArea: {
     height: 90,
     textAlignVertical: 'top',
     paddingTop: 10
   },
+
   categoryScroll: {
     flexDirection: 'row',
     marginBottom: 6
   },
+
   chip: {
     backgroundColor: '#fff',
     borderWidth: 1,
@@ -393,22 +403,27 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     marginRight: 8
   },
+
   chipActive: {
     backgroundColor: '#2e7d32',
     borderColor: '#2e7d32'
   },
+
   chipText: {
     fontSize: 13,
     color: '#495057',
     fontWeight: '500'
   },
+
   chipTextActive: {
     color: '#fff'
   },
+
   row: {
     flexDirection: 'row',
     gap: 12
   },
+
   stateBtn: {
     flex: 1,
     backgroundColor: '#fff',
@@ -418,32 +433,39 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center'
   },
+
   stateBtnActive: {
     backgroundColor: '#2e7d32',
     borderColor: '#2e7d32'
   },
+
   stateText: {
     fontSize: 14,
     fontWeight: '600',
     color: '#495057'
   },
+
   stateTextActive: {
     color: '#fff'
   },
+
   photosScroll: {
     flexDirection: 'row',
     marginTop: 6,
     marginBottom: 16
   },
+
   photoWrapper: {
     position: 'relative',
     marginRight: 12
   },
+
   thumbnail: {
     width: 80,
     height: 80,
     borderRadius: 8
   },
+
   removeBadge: {
     position: 'absolute',
     top: -6,
@@ -455,6 +477,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center'
   },
+
   addPhotoBtn: {
     width: 80,
     height: 80,
@@ -466,12 +489,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center'
   },
+
   addPhotoText: {
     fontSize: 11,
     color: '#2e7d32',
     fontWeight: '600',
     marginTop: 2
   },
+
   submitBtn: {
     backgroundColor: '#2e7d32',
     paddingVertical: 14,
@@ -480,12 +505,15 @@ const styles = StyleSheet.create({
     marginTop: 20,
     marginBottom: 40
   },
+
   submitBtnDisabled: {
     opacity: 0.7
   },
+
   submitBtnText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: '700'
   }
+
 });

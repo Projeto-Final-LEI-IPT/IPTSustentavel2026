@@ -222,8 +222,15 @@ export default function EditArticlescreen({ route, navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  scrollContent: { padding: 16 },
+  container: { 
+    flex: 1, 
+    backgroundColor: '#fff' 
+  },
+
+  scrollContent: { 
+    padding: 16 
+  },
+
   imagePicker: {
     height: 190,
     backgroundColor: '#f1f3f5',
@@ -235,10 +242,30 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#dee2e6'
   },
-  previewImage: { width: '100%', height: '100%', resizeMode: 'cover' },
-  placeholderImage: { alignItems: 'center' },
-  placeholderText: { marginTop: 6, color: '#666', fontSize: 13 },
-  label: { fontSize: 14, fontWeight: '700', color: '#333', marginBottom: 6 },
+
+  previewImage: { 
+    width: '100%', 
+    height: '100%', 
+    resizeMode: 'cover' 
+  },
+
+  placeholderImage: { 
+    alignItems: 'center' 
+  },
+
+  placeholderText: { 
+    marginTop: 6, 
+    color: '#666', 
+    fontSize: 13 
+  },
+
+  label: { 
+    fontSize: 14, 
+    fontWeight: '700', 
+    color: '#333', 
+    marginBottom: 6 
+  },
+
   input: {
     borderWidth: 1,
     borderColor: '#ced4da',
@@ -248,8 +275,16 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     backgroundColor: '#fff'
   },
-  textArea: { height: 90, textAlignVertical: 'top' },
-  chipRow: { flexDirection: 'row', marginBottom: 16 },
+  textArea: { 
+    height: 90, 
+    textAlignVertical: 'top'
+  },
+
+  chipRow: { 
+    flexDirection: 'row', 
+    marginBottom: 16 
+  },
+
   chip: {
     paddingHorizontal: 12,
     paddingVertical: 7,
@@ -257,10 +292,26 @@ const styles = StyleSheet.create({
     backgroundColor: '#e9ecef',
     marginRight: 8
   },
-  chipActive: { backgroundColor: '#2e7d32' },
-  chipText: { fontSize: 13, color: '#495057' },
-  chipTextActive: { color: '#fff', fontWeight: 'bold' },
-  conditionRow: { flexDirection: 'row', gap: 10, marginBottom: 16 },
+
+  chipActive: { 
+    backgroundColor: '#2e7d32'
+  },
+  chipText: { 
+    fontSize: 13, 
+    color: '#495057' 
+  },
+
+  chipTextActive: { 
+    color: '#fff', 
+    fontWeight: 'bold' 
+  },
+
+  conditionRow: { 
+    flexDirection: 'row', 
+    gap: 10, 
+    marginBottom: 16 
+  },
+
   conditionBtn: {
     flex: 1,
     paddingVertical: 10,
@@ -268,15 +319,28 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#e9ecef'
   },
-  conditionBtnActive: { backgroundColor: '#2e7d32' },
-  conditionText: { fontSize: 14, color: '#495057', fontWeight: '600' },
-  conditionTextActive: { color: '#fff' },
+
+  conditionBtnActive: { 
+    backgroundColor: '#2e7d32' 
+  },
+
+  conditionText: { 
+    fontSize: 14, 
+    color: '#495057', 
+    fontWeight: '600' 
+  },
+
+  conditionTextActive: {
+     color: '#fff' 
+  },
+
   switchRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 16
   },
+
   saveButton: {
     backgroundColor: '#2e7d32',
     paddingVertical: 14,
@@ -284,5 +348,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 10
   },
-  saveButtonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' }
+
+  saveButtonText: { 
+    color: '#fff', 
+    fontSize: 16, 
+    fontWeight: 'bold' 
+  }
+  
 });

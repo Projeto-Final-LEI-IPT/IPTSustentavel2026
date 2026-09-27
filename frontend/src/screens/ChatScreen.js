@@ -311,6 +311,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f8f9fa'
   },
+  
   articleBanner: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -321,61 +322,74 @@ const styles = StyleSheet.create({
     borderColor: '#c8e6c9',
     gap: 6
   },
+
   articleBannerText: {
     fontSize: 13,
     color: '#2e7d32',
     flex: 1
   },
+
   articleBannerBold: {
     fontWeight: '700'
   },
+
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center'
   },
+
   listContent: {
     paddingHorizontal: 14,
     paddingVertical: 12,
     flexGrow: 1
   },
+
   emptyContainer: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     paddingTop: 80
   },
+
   emptyText: {
     fontSize: 14,
     color: '#868e96',
     marginTop: 8
   },
+
   bubbleRow: {
     marginVertical: 4,
     flexDirection: 'row'
   },
+
   myBubbleRow: {
     justifyContent: 'flex-end'
   },
+
   theirBubbleRow: {
     justifyContent: 'flex-start'
   },
+
   bubble: {
     maxWidth: '80%',
     borderRadius: 14,
     paddingHorizontal: 12,
     paddingVertical: 8
   },
+
   myBubble: {
     backgroundColor: '#2e7d32',
     borderBottomRightRadius: 2
   },
+
   theirBubble: {
     backgroundColor: '#ffffff',
     borderBottomLeftRadius: 2,
     borderWidth: 1,
     borderColor: '#e9ecef'
   },
+
   articleBadgeInChat: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -384,41 +398,52 @@ const styles = StyleSheet.create({
     borderBottomWidth: 0.5,
     borderBottomColor: 'rgba(255,255,255,0.3)'
   },
+
   articleBadgeText: {
     fontSize: 11,
     fontWeight: '700'
   },
+
   articleBadgeTextMine: {
     color: '#e8f5e9'
   },
+
   articleBadgeTextTheir: {
     color: '#2e7d32'
   },
+
   messageText: {
     fontSize: 15,
     lineHeight: 20
   },
+
   myMessageText: {
     color: '#ffffff'
   },
+
   theirMessageText: {
     color: '#212529'
   },
+
   timeRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-end',
     marginTop: 4
   },
+
   timeText: {
     fontSize: 10
   },
+
   myTimeText: {
     color: 'rgba(255, 255, 255, 0.75)'
   },
+
   theirTimeText: {
     color: '#868e96'
   },
+
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'flex-end',
@@ -429,6 +454,7 @@ const styles = StyleSheet.create({
     borderColor: '#e9ecef',
     gap: 8
   },
+
   textInput: {
     flex: 1,
     backgroundColor: '#f1f3f5',
@@ -442,6 +468,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: '#212529'
   },
+
   sendButton: {
     backgroundColor: '#2e7d32',
     width: 40,
@@ -451,7 +478,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 2
   },
+
   sendButtonDisabled: {
     backgroundColor: '#a5d6a7'
   }
+
 });

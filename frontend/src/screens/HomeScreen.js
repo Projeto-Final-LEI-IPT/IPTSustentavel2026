@@ -106,6 +106,15 @@ export default function HomeScreen({ navigation }) {
     }
   }, [searchTerm, selectedCategory, selectedCondition]);
 
+  // Atualizar dados automaticamente sempre que o ecrã ganha foco
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      fetchCategorias();
+      fetchArtigos(1, false);
+    });
+    return unsubscribe;
+  }, [navigation, fetchArtigos]);
+
   useEffect(() => {
     fetchCategorias();
     fetchArtigos(1, false);
@@ -361,6 +370,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f8f9fa'
   },
+  
   languageButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -370,14 +380,17 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 16
   },
+
   flagIcon: {
     fontSize: 18
   },
+
   searchSection: {
     paddingHorizontal: 16,
     paddingTop: 10,
     paddingBottom: 6
   },
+
   searchBox: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -388,24 +401,30 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     height: 44
   },
+
   searchIcon: {
     marginRight: 8
   },
+
   searchInput: {
     flex: 1,
     fontSize: 15,
     color: '#333'
   },
+
   clearButton: {
     padding: 4
   },
+
   categoriesSection: {
     marginVertical: 6
   },
+
   categoriesList: {
     paddingHorizontal: 16,
     gap: 8
   },
+
   categoryChip: {
     backgroundColor: '#fff',
     borderWidth: 1,
@@ -414,46 +433,56 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
     borderRadius: 20
   },
+
   categoryChipActive: {
     backgroundColor: '#2e7d32',
     borderColor: '#2e7d32'
   },
+
   categoryChipText: {
     fontSize: 13,
     color: '#495057',
     fontWeight: '500'
   },
+
   categoryChipTextActive: {
     color: '#fff'
   },
+
   conditionRow: {
     flexDirection: 'row',
     paddingHorizontal: 16,
     gap: 10,
     marginBottom: 8
   },
+
   conditionChip: {
     paddingHorizontal: 12,
     paddingVertical: 5,
     borderRadius: 6,
     backgroundColor: '#e9ecef'
   },
+
   conditionChipActive: {
     backgroundColor: '#343a40'
   },
+
   conditionText: {
     fontSize: 12,
     color: '#495057',
     fontWeight: '600'
   },
+
   conditionTextActive: {
     color: '#fff'
   },
+
   articlesList: {
     paddingHorizontal: 16,
     paddingBottom: 24,
     gap: 12
   },
+
   card: {
     backgroundColor: '#fff',
     borderRadius: 12,
@@ -466,16 +495,19 @@ const styles = StyleSheet.create({
     shadowRadius: 5,
     shadowOffset: { width: 0, height: 2 }
   },
+
   imageContainer: {
     position: 'relative',
     width: '100%',
     height: 180,
     backgroundColor: '#f1f3f5'
   },
+
   cardImage: {
     width: '100%',
     height: 180
   },
+
   photoCountBadge: {
     position: 'absolute',
     bottom: 8,
@@ -487,29 +519,35 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
     borderRadius: 12
   },
+
   photoCountText: {
     color: '#fff',
     fontSize: 11,
     fontWeight: 'bold'
   },
+
   noImageContainer: {
     backgroundColor: '#f1f3f5',
     justifyContent: 'center',
     alignItems: 'center'
   },
+
   noImageText: {
     fontSize: 12,
     color: '#868e96',
     marginTop: 4
   },
+
   cardContent: {
     padding: 12
   },
+
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center'
   },
+
   cardTitle: {
     fontSize: 16,
     fontWeight: '700',
@@ -517,56 +555,69 @@ const styles = StyleSheet.create({
     flex: 1,
     marginRight: 8
   },
+
   cardCategory: {
     fontSize: 13,
     color: '#6c757d',
     marginTop: 4
   },
+
   actionIconBtn: {
     padding: 4,
     justifyContent: 'center',
     alignItems: 'center'
   },
+
   badgesRow: {
     flexDirection: 'row',
     gap: 6,
     marginTop: 10
   },
+
   badge: {
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 4
   },
+
   badgeGreen: {
     backgroundColor: '#d4edda'
   },
+
   badgeOrange: {
     backgroundColor: '#fff3cd'
   },
+
   badgeAvailable: {
     backgroundColor: '#cce5ff'
   },
+
   badgeUnavailable: {
     backgroundColor: '#f8d7da'
   },
+
   badgeText: {
     fontSize: 11,
     fontWeight: '600',
     color: '#333'
   },
+
   centerLoading: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center'
   },
+
   emptyContainer: {
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 50
   },
+
   emptyText: {
     fontSize: 15,
     color: '#868e96',
     marginTop: 10
   }
+
 });

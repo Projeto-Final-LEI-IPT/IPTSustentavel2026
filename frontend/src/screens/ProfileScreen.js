@@ -23,6 +23,7 @@ export default function ProfileScreen({ route, navigation, onLogout }) {
   const { t, translateCategory } = useLanguage();
 
   const [currentLoggedUserId, setCurrentLoggedUserId] = useState(null);
+  const [userTypeId, setUserTypeId] = useState(null);
   const [user, setUser] = useState(null);
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -33,7 +34,10 @@ export default function ProfileScreen({ route, navigation, onLogout }) {
   const loadProfileData = useCallback(async () => {
     try {
       const loggedId = await AsyncStorage.getItem('userId');
+      const storedUserType = await AsyncStorage.getItem('userTypeId');
+
       if (loggedId) setCurrentLoggedUserId(Number(loggedId));
+      if (storedUserType) setUserTypeId(storedUserType);
 
       const effectiveUserId = targetUserId || loggedId;
       if (!effectiveUserId) return;
@@ -145,9 +149,22 @@ export default function ProfileScreen({ route, navigation, onLogout }) {
           </View>
         </View>
 
+        {/* Botão de Painel de Administração visível apenas para administradores */}
+        {isOwnProfile && userTypeId === '2' && (
+          <View style={styles.actionRow}>
+            <TouchableOpacity 
+              style={styles.adminButton}
+              onPress={() => navigation.navigate('AdminDashboard')}
+            >
+              <Ionicons name="shield-checkmark-outline" size={18} color="#fff" style={{ marginRight: 6 }} />
+              <Text style={styles.adminButtonText}>{t('adminDashboardBtn')}</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
         {/* Botão de Terminar Sessão apenas visível no perfil do próprio */}
         {isOwnProfile && onLogout && (
-          <View style={styles.actionRow}>
+          <View style={[styles.actionRow, { marginTop: userTypeId === '2' ? 8 : 0 }]}>
             <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
               <Ionicons name="log-out-outline" size={18} color="#dc3545" style={{ marginRight: 6 }} />
               <Text style={styles.logoutButtonText}>{t('logout')}</Text>
@@ -254,9 +271,21 @@ export default function ProfileScreen({ route, navigation, onLogout }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f8f9fa' },
-  centerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  listContent: { paddingBottom: 24 },
+  container: { 
+    flex: 1, 
+    backgroundColor: '#f8f9fa' 
+  },
+
+  centerContainer: { 
+    flex: 1, 
+    justifyContent: 'center', 
+    alignItems: 'center' 
+  },
+
+  listContent: { 
+    paddingBottom: 24 
+  },
+
   profileHeader: {
     alignItems: 'center',
     backgroundColor: '#ffffff',
@@ -266,8 +295,17 @@ const styles = StyleSheet.create({
     borderColor: '#e9ecef',
     marginBottom: 12
   },
-  avatarContainer: { marginBottom: 12 },
-  avatarImage: { width: 90, height: 90, borderRadius: 45 },
+
+  avatarContainer: { 
+    marginBottom: 12 
+  },
+
+  avatarImage: { 
+    width: 90, 
+    height: 90, 
+    borderRadius: 45 
+  },
+
   avatarPlaceholder: {
     width: 90,
     height: 90,
@@ -276,10 +314,31 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center'
   },
-  avatarText: { color: '#ffffff', fontSize: 32, fontWeight: 'bold' },
-  userName: { fontSize: 20, fontWeight: '700', color: '#212529', marginBottom: 4 },
-  userEmail: { fontSize: 14, color: '#6c757d', marginBottom: 16 },
-  statsRow: { flexDirection: 'row', marginBottom: 16 },
+
+  avatarText: { 
+    color: '#ffffff', 
+    fontSize: 32, 
+    fontWeight: 'bold' 
+  },
+
+  userName: { 
+    fontSize: 20, 
+    fontWeight: '700', 
+    color: '#212529', 
+    marginBottom: 4 
+  },
+
+  userEmail: { 
+    fontSize: 14, 
+    color: '#6c757d', 
+    marginBottom: 16 
+  },
+
+  statsRow: { 
+    flexDirection: 'row', 
+    marginBottom: 16 
+  },
+
   statBox: {
     alignItems: 'center',
     paddingHorizontal: 20,
@@ -287,20 +346,60 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: '#e8f5e9'
   },
-  statValue: { fontSize: 18, fontWeight: 'bold', color: '#2e7d32' },
-  statLabel: { fontSize: 12, color: '#388e3c' },
-  actionRow: { width: '100%', alignItems: 'center' },
+
+  statValue: { 
+    fontSize: 18, 
+    fontWeight: 'bold', 
+    color: '#2e7d32' 
+  },
+
+  statLabel: { 
+    fontSize: 12, 
+    color: '#388e3c' 
+  },
+
+  actionRow: { 
+    width: '100%', 
+    alignItems: 'center' 
+  },
+
+  adminButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    backgroundColor: '#2e7d32',
+    width: '100%',
+    marginBottom: 4
+  },
+
+  adminButtonText: { 
+    color: '#fff', 
+    fontSize: 14, 
+    fontWeight: '700' 
+  },
+
   logoutButton: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 8,
     borderWidth: 1,
     borderColor: '#f5c6cb',
-    backgroundColor: '#f8d7da'
+    backgroundColor: '#f8d7da',
+    width: '100%'
   },
-  logoutButtonText: { color: '#dc3545', fontSize: 13, fontWeight: '700' },
+
+  logoutButtonText: { 
+    color: '#dc3545', 
+    fontSize: 13, 
+    fontWeight: '700' 
+  },
+
   myArticlesTitle: {
     alignSelf: 'flex-start',
     fontSize: 16,
@@ -308,6 +407,7 @@ const styles = StyleSheet.create({
     color: '#212529',
     marginTop: 20
   },
+
   card: {
     flexDirection: 'row',
     backgroundColor: '#ffffff',
@@ -319,25 +419,91 @@ const styles = StyleSheet.create({
     borderColor: '#e9ecef',
     alignItems: 'center'
   },
-  cardImage: { width: 75, height: 75, borderRadius: 8 },
-  noImage: { backgroundColor: '#f1f3f5', justifyContent: 'center', alignItems: 'center' },
-  cardInfo: { flex: 1, marginLeft: 12, justifyContent: 'center' },
-  articleTitle: { fontSize: 15, fontWeight: '700', color: '#212529', marginBottom: 2 },
-  articleCategory: { fontSize: 12, color: '#6c757d', marginBottom: 6 },
-  statusRow: { flexDirection: 'row', gap: 6 },
-  badge: { paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 },
-  badgeGreen: { backgroundColor: '#d4edda' },
-  badgeOrange: { backgroundColor: '#fff3cd' },
-  badgeAvailable: { backgroundColor: '#cce5ff' },
-  badgeUnavailable: { backgroundColor: '#f8d7da' },
-  badgeText: { fontSize: 10, fontWeight: '600', color: '#333' },
+
+  cardImage: { 
+    width: 75, 
+    height: 75, 
+    borderRadius: 8 
+  },
+
+  noImage: { 
+    backgroundColor: '#f1f3f5', 
+    justifyContent: 'center', 
+    alignItems: 'center' 
+  },
+
+  cardInfo: { 
+    flex: 1, 
+    marginLeft: 12, 
+    justifyContent: 'center' 
+  },
+
+  articleTitle: { 
+    fontSize: 15, 
+    fontWeight: '700', 
+    color: '#212529', 
+    marginBottom: 2 
+  },
+
+  articleCategory: { 
+    fontSize: 12, 
+    color: '#6c757d', 
+    marginBottom: 6 
+  },
+
+  statusRow: { 
+    flexDirection: 'row', 
+    gap: 6 
+  },
+
+  badge: { 
+    paddingHorizontal: 6, 
+    paddingVertical: 2, 
+    borderRadius: 4 
+  },
+
+  badgeGreen: { 
+    backgroundColor: '#d4edda'
+  },
+
+  badgeOrange: { 
+    backgroundColor: '#fff3cd' 
+  },
+
+  badgeAvailable: { 
+    backgroundColor: '#cce5ff' 
+  },
+  badgeUnavailable: { 
+    backgroundColor: '#f8d7da' 
+  },
+
+  badgeText: { 
+    fontSize: 10, 
+    fontWeight: '600', 
+    color: '#333' 
+  },
+
   cardActions: {
     flexDirection: 'column',
     justifyContent: 'space-around',
     marginLeft: 8,
     gap: 10
   },
-  actionBtn: { padding: 6 },
-  emptyContainer: { alignItems: 'center', justifyContent: 'center', paddingVertical: 40 },
-  emptyText: { color: '#868e96', fontSize: 14, marginTop: 8 }
+
+  actionBtn: { 
+    padding: 6 
+  },
+
+  emptyContainer: { 
+    alignItems: 'center', 
+    justifyContent: 'center', 
+    paddingVertical: 40 
+  },
+
+  emptyText: { 
+    color: '#868e96', 
+    fontSize: 14, 
+    marginTop: 8 
+  }
+  
 });

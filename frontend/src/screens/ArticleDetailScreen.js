@@ -282,28 +282,43 @@ export default function ArticleDetailScreen({ route, navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  scrollContent: { paddingBottom: 100 },
+  container: { 
+    flex: 1, 
+    backgroundColor: '#fff'
+  },
+
+  scrollContent: { 
+    paddingBottom: 100 
+  },
+
   carouselContainer: {
     width: SCREEN_WIDTH,
     height: CAROUSEL_HEIGHT,
     backgroundColor: '#000',
     position: 'relative'
   },
+
   zoomScroll: {
     width: SCREEN_WIDTH,
     height: CAROUSEL_HEIGHT
   },
+
   carouselImage: {
     width: SCREEN_WIDTH,
     height: CAROUSEL_HEIGHT
   },
+
   noImage: {
     backgroundColor: '#f1f3f5',
     justifyContent: 'center',
     alignItems: 'center'
   },
-  noImageText: { color: '#888', marginTop: 6 },
+
+  noImageText: { 
+    color: '#888', 
+    marginTop: 6 
+  },
+
   counterBadge: {
     position: 'absolute',
     bottom: 12,
@@ -313,52 +328,64 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 14
   },
+
   counterText: {
     color: '#fff',
     fontSize: 12,
     fontWeight: '700'
   },
+
   content: {
     padding: 18
   },
+
   title: {
     fontSize: 22,
     fontWeight: 'bold',
     color: '#212529',
     marginBottom: 4
   },
+
   category: {
     fontSize: 14,
     color: '#6c757d',
     marginBottom: 12
   },
+
   badgesRow: {
     flexDirection: 'row',
     gap: 8,
     marginBottom: 18
   },
+
   badge: {
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 6
   },
+
   badgeGreen: {
     backgroundColor: '#d4edda'
   },
+
   badgeOrange: {
     backgroundColor: '#fff3cd'
   },
+
   badgeAvailable: {
     backgroundColor: '#cce5ff'
   },
+
   badgeUnavailable: {
     backgroundColor: '#f8d7da'
   },
+
   badgeText: {
     fontSize: 12,
     fontWeight: '600',
     color: '#333'
   },
+
   ownerCard: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -369,29 +396,35 @@ const styles = StyleSheet.create({
     borderColor: '#e9ecef',
     marginBottom: 20
   },
+
   ownerInfo: {
     marginLeft: 12
   },
+
   ownerName: {
     fontSize: 15,
     fontWeight: '700',
     color: '#333'
   },
+
   ownerEmail: {
     fontSize: 13,
     color: '#6c757d'
   },
+
   sectionTitle: {
     fontSize: 16,
     fontWeight: 'bold',
     color: '#333',
     marginBottom: 8
   },
+
   description: {
     fontSize: 15,
     lineHeight: 22,
     color: '#495057'
   },
+
   footer: {
     position: 'absolute',
     bottom: 0,
@@ -403,10 +436,12 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderColor: '#e9ecef'
   },
+
   ownerButtonsRow: {
     flexDirection: 'row',
     gap: 12
   },
+
   actionButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -414,20 +449,25 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 8
   },
+
   messageButton: {
     backgroundColor: '#2e7d32'
   },
+
   editButton: {
     flex: 1,
     backgroundColor: '#007bff'
   },
+
   deleteButton: {
     flex: 1,
     backgroundColor: '#dc3545'
   },
+
   actionButtonText: {
     color: '#fff',
     fontSize: 15,
     fontWeight: 'bold'
   }
+  
 });

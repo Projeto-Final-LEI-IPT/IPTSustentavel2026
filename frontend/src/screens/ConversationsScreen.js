@@ -237,6 +237,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f8f9fa'
   },
+
   searchSection: {
     paddingHorizontal: 16,
     paddingVertical: 10,
@@ -244,6 +245,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderColor: '#e9ecef'
   },
+
   searchBox: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -252,30 +254,36 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     height: 40
   },
+
   searchInput: {
     flex: 1,
     fontSize: 14,
     color: '#212529'
   },
+
   listContent: {
     flexGrow: 1
   },
+
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center'
   },
+
   emptyContainer: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 80
   },
+
   emptyText: {
     color: '#868e96',
     fontSize: 14,
     marginTop: 10
   },
+
   chatCard: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -285,6 +293,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderColor: '#f1f3f5'
   },
+
   avatar: {
     width: 48,
     height: 48,
@@ -294,20 +303,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 12
   },
+
   avatarText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold'
   },
+
   chatInfo: {
     flex: 1
   },
+
   topRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 4
   },
+
   userName: {
     fontSize: 15,
     fontWeight: '700',
@@ -315,25 +328,30 @@ const styles = StyleSheet.create({
     flex: 1,
     marginRight: 8
   },
+
   timeText: {
     fontSize: 12,
     color: '#868e96'
   },
+
   bottomRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center'
   },
+
   lastMessage: {
     fontSize: 13,
     color: '#6c757d',
     flex: 1,
     marginRight: 8
   },
+
   lastMessageUnread: {
     color: '#212529',
     fontWeight: '700'
   },
+
   unreadBadge: {
     backgroundColor: '#2e7d32',
     minWidth: 20,
@@ -343,9 +361,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 6
   },
+
   unreadBadgeText: {
     color: '#fff',
     fontSize: 11,
     fontWeight: 'bold'
   }
+  
 });

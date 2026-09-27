@@ -167,6 +167,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center', 
     padding: 16 
   },
+
   loginForm: { 
     backgroundColor: 'white', 
     borderRadius: 8, 
@@ -178,11 +179,13 @@ const styles = StyleSheet.create({
     elevation: 3, 
     alignItems: 'center' 
   },
+
   logo: { 
     width: 100, 
     height: 50, 
     marginBottom: 16 
   },
+
   title: { 
     fontSize: 20, 
     fontWeight: 'bold', 
@@ -190,16 +193,19 @@ const styles = StyleSheet.create({
     textAlign: 'center', 
     fontFamily: Platform.OS === 'ios' ? 'Arial' : 'sans-serif' 
   },
+
   subtitle: { 
     fontSize: 14,
     color: '#4CAF50', 
     marginBottom: 24, 
     fontWeight: '600' 
   },
+
   formGroup: { 
     width: '100%', 
     marginBottom: 20 
   },
+
   searchInput: { 
     width: '100%', 
     padding: 12, 
@@ -211,6 +217,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff', 
     minHeight: 44 
   },
+
   viewDetails: { 
     backgroundColor: '#4CAF50', 
     padding: 12, 
@@ -221,26 +228,31 @@ const styles = StyleSheet.create({
     minHeight: 44,
     marginTop: 8
   },
+
   buttonText: { 
     color: 'white', 
     fontSize: 16, 
     fontWeight: 'bold' 
   },
+
   dividerContainer: { 
     flexDirection: 'row', 
     alignItems: 'center', 
     marginVertical: 20, 
     width: '100%' 
   },
+
   dividerLine: { 
     flex: 1, 
     height: 1, 
     backgroundColor: '#ddd' 
   },
+
   dividerText: { 
     marginHorizontal: 10, 
     color: '#666' 
   },
+
   buttonMicrosoft: { 
     width: '100%', 
     height: 44, 
@@ -250,9 +262,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center', 
     alignItems: 'center' 
   },
+
   buttonTextMS: { 
     color: '#fff', 
     fontSize: 15, 
     fontWeight: '600' 
   }
+  
 });
