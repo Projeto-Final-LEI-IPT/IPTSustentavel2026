@@ -1,0 +1,36 @@
+{
+  "expo": {
+    "name": "Plataforma IPT Sustentável",
+    "slug": "ipt-sustentavel",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "androidNavigationBar": {
+      "visible": "always",
+      "barStyle": "dark-content",
+      "backgroundColor": "#ffffff"
+    },
+    "android": {
+      "package": "com.ipt.sustentavel",
+      "softwareKeyboardLayoutMode": "resize",
+      "permissions": [
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.READ_MEDIA_IMAGES"
+      ]
+    },
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "A aplicação necessita de aceder às tuas fotos para publicar anúncios."
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "ef831c70-da66-411d-acf6-f8f003f2844b"
+      }
+    }
+  }
+}

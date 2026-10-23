@@ -8,32 +8,80 @@ import {
   Image, 
   Alert, 
   KeyboardAvoidingView, 
-  Platform 
+  Platform,
+  ActivityIndicator
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from '../services/api';
 
-export default function LoginScreen({ setIsAuthenticated, setUserTypeId }) {
+export default function LoginScreen({ onLoginSuccess }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleLoginManual = async () => {
-    if (!email || !password) {
-      Alert.alert('Erro', 'Por favor, preencha todos os campos.');
+    if (!email.trim() || !password.trim()) {
+      Alert.alert('Aviso', 'Por favor, preenche todos os campos.');
       return;
     }
+
+    setLoading(true);
+
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanPassword = password.trim();
+
+    console.log('[LOGIN] A tentar ligar a:', `${api.defaults.baseURL}/auth/login`);
+
     try {
-      const response = await api.post('/auth/login', { email, password });
+      const response = await api.post('/auth/login', { 
+        email: cleanEmail, 
+        password: cleanPassword 
+      });
+
+      console.log('[LOGIN] Sucesso:', response.data);
+
       const { token, userId, userTypeId } = response.data;
 
-      await AsyncStorage.setItem('token', token);
-      await AsyncStorage.setItem('userId', userId.toString());
-      await AsyncStorage.setItem('userTypeId', userTypeId.toString());
+      if (!token) {
+        throw new Error('O servidor não devolveu um token válido.');
+      }
 
-      setUserTypeId(userTypeId.toString());
-      setIsAuthenticated(true);
+      // 1. Guardar a sessão no armazenamento persistente
+      await AsyncStorage.setItem('token', token);
+      await AsyncStorage.setItem('userId', (userId || response.data.id || '').toString());
+      if (userTypeId) {
+        await AsyncStorage.setItem('userTypeId', userTypeId.toString());
+      }
+
+      // 2. Injetar logo o token nas chamadas automáticas do Axios
+      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
+      // 3. Atualizar o estado no App.js
+      if (onLoginSuccess) {
+        onLoginSuccess();
+      }
     } catch (error) {
-      Alert.alert('Erro no Login', error.response?.data?.message || 'Credenciais inválidas.');
+      console.error('[LOGIN] Erro capturado:', {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message
+      });
+
+      // Extrai sempre texto simples para o alerta não falhar
+      let errorText = 'Ocorreu um erro ao tentar entrar.';
+      if (typeof error.response?.data === 'string') {
+        errorText = error.response.data;
+      } else if (error.response?.data?.message) {
+        errorText = error.response.data.message;
+      } else if (error.message.includes('Network Error')) {
+        errorText = 'Não foi possível ligar ao servidor. Verifica o IP em services/api.js e se o backend está ligado.';
+      } else if (error.message) {
+        errorText = error.message;
+      }
+
+      Alert.alert('Erro no Login', errorText);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -60,12 +108,13 @@ export default function LoginScreen({ setIsAuthenticated, setUserTypeId }) {
         <View style={styles.formGroup}>
           <TextInput
             style={styles.searchInput}
-            placeholder="Email institucional"
+            placeholder="Email"
             placeholderTextColor="#666"
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
             autoCapitalize="none"
+            editable={!loading}
           />
         </View>
 
@@ -77,11 +126,20 @@ export default function LoginScreen({ setIsAuthenticated, setUserTypeId }) {
             value={password}
             onChangeText={setPassword}
             secureTextEntry
+            editable={!loading}
           />
         </View>
 
-        <TouchableOpacity style={styles.viewDetails} onPress={handleLoginManual}>
-          <Text style={styles.buttonText}>Entrar</Text>
+        <TouchableOpacity 
+          style={[styles.viewDetails, loading && { opacity: 0.7 }]} 
+          onPress={handleLoginManual}
+          disabled={loading}
+        >
+          {loading ? (
+            <ActivityIndicator color="#fff" size="small" />
+          ) : (
+            <Text style={styles.buttonText}>Entrar</Text>
+          )}
         </TouchableOpacity>
 
         <View style={styles.dividerContainer}>
@@ -90,11 +148,11 @@ export default function LoginScreen({ setIsAuthenticated, setUserTypeId }) {
           <View style={styles.dividerLine} />
         </View>
 
-        <TouchableOpacity style={styles.buttonMicrosoft} onPress={handleLoginMicrosoft}>
-          <Image 
-            source={{ uri: 'METER ICON DA MICROSOFT!!!' }} 
-            style={styles.msIcon}
-          />
+        <TouchableOpacity 
+          style={styles.buttonMicrosoft} 
+          onPress={handleLoginMicrosoft}
+          disabled={loading}
+        >
           <Text style={styles.buttonTextMS}>Entrar com Conta IPT</Text>
         </TouchableOpacity>
       </View>
@@ -108,7 +166,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f8f9fa', 
     justifyContent: 'center', 
     padding: 16 
-    },
+  },
 
   loginForm: { 
     backgroundColor: 'white', 
@@ -120,35 +178,34 @@ const styles = StyleSheet.create({
     shadowRadius: 4, 
     elevation: 3, 
     alignItems: 'center' 
-    },
+  },
 
   logo: { 
     width: 100, 
     height: 50, 
     marginBottom: 16 
-    },
+  },
 
   title: { 
     fontSize: 20, 
     fontWeight: 'bold', 
     color: '#111', 
     textAlign: 'center', 
-    fontFamily: 
-    Platform.OS === 'ios' ? 'Arial' : 'sans-serif' 
-    },
-  
+    fontFamily: Platform.OS === 'ios' ? 'Arial' : 'sans-serif' 
+  },
+
   subtitle: { 
     fontSize: 14,
     color: '#4CAF50', 
     marginBottom: 24, 
     fontWeight: '600' 
-    },
-  
+  },
+
   formGroup: { 
     width: '100%', 
-    marginBottom: 24 
-    },
-  
+    marginBottom: 20 
+  },
+
   searchInput: { 
     width: '100%', 
     padding: 12, 
@@ -159,8 +216,8 @@ const styles = StyleSheet.create({
     color: '#000', 
     backgroundColor: '#fff', 
     minHeight: 44 
-    },
-  
+  },
+
   viewDetails: { 
     backgroundColor: '#4CAF50', 
     padding: 12, 
@@ -168,33 +225,34 @@ const styles = StyleSheet.create({
     width: '100%', 
     alignItems: 'center', 
     justifyContent: 'center', 
-    minHeight: 44 
-    },
-  
+    minHeight: 44,
+    marginTop: 8
+  },
+
   buttonText: { 
     color: 'white', 
     fontSize: 16, 
     fontWeight: 'bold' 
-    },
-  
+  },
+
   dividerContainer: { 
     flexDirection: 'row', 
     alignItems: 'center', 
     marginVertical: 20, 
     width: '100%' 
-    },
-  
+  },
+
   dividerLine: { 
     flex: 1, 
     height: 1, 
     backgroundColor: '#ddd' 
-    },
-  
+  },
+
   dividerText: { 
     marginHorizontal: 10, 
     color: '#666' 
-    },
-  
+  },
+
   buttonMicrosoft: { 
     width: '100%', 
     height: 44, 
@@ -203,17 +261,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row', 
     justifyContent: 'center', 
     alignItems: 'center' 
-    },
-  
-  msIcon: {
-    width: 16, 
-    height: 16, 
-    marginRight: 12 
-    },
-  
+  },
+
   buttonTextMS: { 
     color: '#fff', 
     fontSize: 15, 
     fontWeight: '600' 
-    }
+  }
+  
 });

@@ -128,3 +128,16 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+# --- Expo & React Native ---
+.expo/
+.expo-shared/
+web-build/
+
+# Pastas geradas por prebuild / builds nativas locais
+android/
+ios/
+
+# Cache do Metro Bundler
+.metro-health-check*
+*.metro.cache

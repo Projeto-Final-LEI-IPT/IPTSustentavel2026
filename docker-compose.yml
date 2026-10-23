@@ -35,6 +35,10 @@ services:
       JWT_SECRET: supersecret
     ports:
       - "3001:3001"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+      - ./backend/pictures:/app/pictures
     depends_on:
       - mysql
 
@@ -43,6 +47,7 @@ services:
     restart: always
     ports:
       - "3000:3000"
+    profiles: ["ignore"]
     volumes:
       - ./frontend:/app
       - /app/node_modules
