@@ -1,0 +1,461 @@
+/* Modal de detalhes do artigo - contentor principal */
+.article-detail-modal {
+    background: white;
+    padding: 1rem;
+    border-radius: 10px;
+    max-width: 1000px;
+    width: 100%;
+    max-height: 88vh;
+    overflow-y: auto;
+    position: relative;
+}
+
+/* Botão para fechar o modal */
+.close-button {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    box-shadow: none;
+    text-shadow: none;
+    filter: none;
+    -webkit-filter: none;
+    outline: none;
+}
+
+/* Contentor principal do produto que divide a galeria e informações */
+.product-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-top: 0.0rem;
+    height: 100%
+}
+
+/* Secção da galeria de imagens */
+.gallery-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+}
+
+/* Contentor para a imagem principal do produto */
+.main-image {
+    aspect-ratio: 1/1;
+    background: #f5f5f5;
+    border-radius: 8px;
+    overflow: hidden;
+    max-height: 300px;
+}
+
+/* Estilo da imagem principal do produto */
+.product-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    transition: opacity 0.3s ease;
+}
+
+/* Thumbnails numa linha */
+.thumbnail-grid {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 0.2rem;
+    width: 100%;
+    justify-content: center;
+    /* Centraliza os thumbnails */
+}
+
+/* Item individual de miniatura */
+.thumbnail-item {
+    flex: 0 0 auto;
+    width: calc(20% - 0.2rem);
+    /* 5 thumbnails por linha */
+    aspect-ratio: 1/1;
+    background: #f5f5f5;
+    border-radius: 4px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+    /* Efeito de hover na miniatura */
+    .thumbnail-item:hover {
+        transform: scale(1.05);
+    }
+
+    /* Estilo para miniatura selecionada */
+    .thumbnail-item.selected {
+        border: 2px solid #007bff;
+        box-shadow: 0 0 6px rgba(0, 123, 255, 0.3);
+    }
+
+/* Estilo da imagem de miniatura */
+.thumbnail-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* ========== PRODUCT INFO SECTION ========== */
+.product-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+    /* Elementos dentro da secção de informações do produto */
+    .product-info > * {
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        padding: 0rem 0rem 0.3rem;
+    }
+
+/* Metadados do produto (preço, categoria, etc.) */
+.metadata {
+    border-bottom: 1px solid #eee;
+    display: flex;
+    flex-direction: column;
+    gap: 0.rem;
+    color: #666;
+    font-size: 0.88rem;
+}
+
+/* Contentor para indicadores de estado do produto */
+.status-container {
+    display: flex;
+    gap: 0.7rem;
+    align-items: center;
+}
+
+/* Etiqueta de disponibilidade do produto */
+.availability-tag {
+    padding: 0.2rem 0.6rem;
+    border-radius: 20px;
+    font-weight: 500;
+    font-size: 0.85rem;
+}
+
+/* Estilo para produtos disponíveis */
+.available {
+    background: #e3fcef;
+    color: #006644;
+}
+
+/* Estilo para produtos indisponíveis */
+.unavailable {
+    background: #ffebe6;
+    color: #bf2600;
+}
+
+/* Secção da descrição do produto */
+.description-section {
+    background: #f8f9fa;
+    padding: 0.8rem;
+    border-radius: 8px;
+}
+
+/* Informações do vendedor */
+.seller-info {
+    border-top: 1px solid #eee;
+    padding-top: 0.6rem;
+}
+
+/* Informações da descrição */
+.desc-info {
+    border-top: 1px solid #eee;
+    padding-top: 0.6rem;
+}
+
+/* Detalhes do vendedor */
+.seller-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    margin-top: 0.4rem;
+}
+
+/* ========== MESSAGE BOX ========== */
+.message-box-container {
+    width: 100%;
+    /* Usa toda a largura disponível */
+    margin-top: 0.8rem;
+    position: relative;
+    /* Para posicionamento do contador */
+    margin-bottom: 1rem;
+    /* Espaço adicional após a caixa de mensagem */
+}
+
+/* Contentor de área de texto para mensagens */
+.textarea-container {
+    position: relative;
+    width: 100%;
+}
+
+/* Campo de texto para mensagens */
+.message-input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    margin-bottom: 0.6rem;
+    resize: none;
+    font-size: 0.9rem;
+    min-height: 80px;
+    /* Altura mínima razoável */
+    padding-bottom: 25px;
+    /* Espaço para o contador */
+}
+
+/* Mensagem de erro para formulários */
+.error-message {
+    color: #dc3545;
+    font-size: 0.85rem;
+    margin-bottom: 0.5rem;
+}
+
+/* Mensagem de sucesso para formulários */
+.success-message {
+    color: #28a745;
+    font-size: 0.85rem;
+    margin-bottom: 0.5rem;
+}
+
+/* Botão de contacto */
+.contact-button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1.2rem;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s;
+    font-size: 0.9rem;
+    width: fit-content;
+}
+
+    /* Efeito de hover no botão de contacto */
+    .contact-button:hover {
+        background: #0056b3;
+    }
+
+/* Contador de caracteres que mostra a quantidade de texto inserido */
+.char-counter {
+    position: absolute;
+    right: 10px;
+    bottom: 5px;
+    font-size: 0.8em;
+    color: #666;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 2px 5px;
+    border-radius: 3px;
+}
+
+/* Espaço reservado para imagens quando não estão disponíveis */
+.image-placeholder,
+.thumbnail-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #999;
+    height: 100%;
+    padding: 1rem;
+    text-align: center;
+}
+
+/* ========== MEDIA QUERIES ========== */
+@media (-webkit-device-pixel-ratio: 1.5), (resolution: 144dpi) {
+    .article-detail-modal {
+        max-width: 900px;
+        padding: 1rem;
+    }
+
+    .product-container {
+        gap: 1rem;
+    }
+
+    .metadata {
+        font-size: 0.82rem;
+    }
+}
+
+/* Ajuste para ecrãs até 1440px */
+@media (max-width: 1440px) {
+    .article-detail-modal {
+        max-width: 800px;
+    }
+}
+
+/* Ajustes para tablets e dispositivos médios */
+@media (max-width: 768px) {
+    .article-detail-modal {
+        position: fixed;
+        top: 40%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        max-height: 75vh;
+        width: 90% !important;
+        padding: 1.2rem;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .product-container {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+    }
+
+    .gallery-section {
+        align-items: center;
+        width: 100%;
+    }
+
+    .product-info {
+        align-items: center;
+        text-align: center;
+        width: 100%;
+    }
+
+    .thumbnail-grid {
+        display: flex;
+        flex-wrap: nowrap;
+        justify-content: center;
+        width: 100%;
+        gap: 0.2rem;
+    }
+
+    .thumbnail-item {
+        width: calc(16% - 0.2rem);
+        /* ~6 thumbnails por linha */
+    }
+
+    .message-box-container {
+        width: 100% !important;
+        margin-top: 1.5rem;
+        margin-bottom: 1rem;
+        padding-bottom: env(safe-area-inset-bottom, 15px);
+    }
+
+    .message-input {
+        min-height: 80px;
+        font-size: 16px !important;
+        /* Previne zoom em iOS */
+    }
+
+    .contact-button {
+        width: 100%;
+        justify-content: center;
+        margin-top: 0.5rem;
+    }
+
+    /* Ajuste quando o teclado virtual estiver visível */
+    .keyboard-active .article-detail-modal {
+        top: 25%;
+        max-height: 60vh;
+        padding-bottom: 60px;
+    }
+}
+
+/* Ajustes para dispositivos móveis pequenos */
+@media (max-width: 480px) {
+    .article-detail-modal {
+        gap: 2rem;
+        padding: 1rem;
+        width: 95% !important;
+        top: 45%;
+        max-height: 75vh;
+        padding-bottom: 2rem;
+        /* Mais espaço na parte inferior */
+    }
+
+    .main-image {
+        width: 100%;
+        min-height: 150px;
+        margin: 0 auto;
+    }
+
+    .thumbnail-grid {
+        display: flex;
+        flex-wrap: nowrap;
+        justify-content: center;
+        width: 90%;
+        /* Reduzido para melhor centralização */
+        margin: 0 auto;
+        gap: 0.2rem;
+    }
+
+    .thumbnail-item {
+        width: calc(14% - 0.2rem);
+        /* ~7 thumbnails por linha */
+    }
+
+    .status-container {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .message-box-container {
+        position: relative;
+        width: 80% !important;
+        padding-left: 2.7rem;
+    }
+
+    .textarea-container {
+        margin-bottom: 0.5rem;
+    }
+
+    .message-input {
+        margin-bottom: 0.8rem;
+    }
+
+    .contact-button {
+        padding: 0.5rem 1rem;
+        margin-bottom: 1rem;
+    }
+
+    /* Gestão do teclado para dispositivos pequenos */
+    .keyboard-active .article-detail-modal {
+        top: 30%;
+        max-height: 60vh;
+        padding-bottom: 80px;
+        /* Espaço extra quando teclado está ativo */
+    }
+}
+
+/* Ajuste para ecrãs verticais curtos */
+@media (max-height: 600px) {
+    .article-detail-modal {
+        top: 45%;
+        max-height: 65vh;
+    }
+
+    .keyboard-active .article-detail-modal {
+        top: 20%;
+        max-height: 65vh;
+        padding-bottom: 80px;
+        /* Mais espaço quando o teclado está ativo */
+    }
+
+    .message-input {
+        min-height: 60px;
+    }
+
+    .product-container {
+        gap: 0.8rem;
+    }
+
+    .gallery-section {
+        gap: 0.8rem;
+    }
+}

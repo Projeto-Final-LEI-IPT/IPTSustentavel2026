@@ -1,0 +1,92 @@
+
+.modal-overlay {
+    position: fixed; /* Fixa a posição relativamente à janela de visualização */
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0; /* Ocupa todo o ecrã */
+    background: rgba(0,0,0,0.5); /* Fundo preto semi-transparente */
+    display: flex; /* Utiliza flexbox para centralização */
+    justify-content: center; /* Centraliza horizontalmente */
+    align-items: center; /* Centraliza verticalmente */
+    z-index: 1000; /* Coloca acima de outros elementos */
+}
+
+/* Estilo para o título do conteúdo de direitos de autor */
+.copyright-title-content {
+    font-size: 15px; /* Tamanho da letra */
+    font-weight: bold; /* Texto a negrito */
+}
+
+/* Contentor principal do modal */
+.copyright-modal {
+    background: white; /* Fundo branco */
+    padding: 25px; /* Espaçamento interior */
+    border-radius: 10px; /* Cantos arredondados */
+    width: 700px; /* Largura fixa */
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1); /* Sombra subtil */
+    box-sizing: border-box; /* Inclui padding na largura total */
+    position: relative; /* Para posicionamento de elementos internos */
+    color: #666; /* Cor de texto cinzenta */
+}
+
+/* Botão para fechar o modal */
+.close-modal {
+    position: absolute; /* Posicionamento absoluto dentro do modal */
+    right: 20px;
+    top: 15px;
+    background: none; /* Sem fundo */
+    border: none; /* Sem contorno */
+    font-size: 1.5em; /* Tamanho aumentado */
+    cursor: pointer; /* Cursor de mão ao passar */
+    color: #666;
+    padding: 5px;
+    transition: color 0.2s; /* Transição suave da cor */
+}
+
+    /* Efeito de hover no botão de fechar */
+    .close-modal:hover {
+        color: #333; /* Cor mais escura ao passar o rato */
+    }
+
+/* Estilo do título do modal */
+.copyright-modal h2 {
+    margin: 0 0 15px 0; /* Margem apenas em baixo */
+    padding-right: 30px; /* Espaço para não sobrepor ao botão de fechar */
+}
+
+/* Área do conteúdo de direitos de autor */
+.copyright-content {
+    max-height: 300px; /* Altura máxima com scroll */
+    overflow-y: auto; /* Scroll vertical se necessário */
+    margin-bottom: 15px;
+    line-height: 1.5; /* Espaçamento entre linhas para melhor legibilidade */
+}
+
+    /* Parágrafos dentro da área de conteúdo */
+    .copyright-content p {
+        margin-bottom: 12px;
+        color: #333; /* Cor mais escura para melhor legibilidade */
+    }
+
+/* Contentor para botões de acção */
+.modal-actions {
+    display: flex; /* Layout flexbox */
+    gap: 10px; /* Espaço entre os botões */
+    justify-content: flex-end; /* Alinha os botões à direita */
+}
+
+/* Estilo base para botões */
+.btn {
+    padding: 8px 20px;
+    border: none;
+    border-radius: 5px; /* Cantos arredondados */
+    cursor: pointer;
+    font-weight: 500; /* Texto semi-negrito */
+}
+
+    /* Estilo específico para o botão de fechar */
+    .btn.close {
+        background: #2c83fb; /* Azul */
+        color: white;
+    }
