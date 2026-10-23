@@ -23,7 +23,6 @@ export default function ProfileScreen({ route, navigation, onLogout }) {
   const { t, translateCategory } = useLanguage();
 
   const [currentLoggedUserId, setCurrentLoggedUserId] = useState(null);
-  const [userTypeId, setUserTypeId] = useState(null);
   const [user, setUser] = useState(null);
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -34,10 +33,8 @@ export default function ProfileScreen({ route, navigation, onLogout }) {
   const loadProfileData = useCallback(async () => {
     try {
       const loggedId = await AsyncStorage.getItem('userId');
-      const storedUserType = await AsyncStorage.getItem('userTypeId');
 
       if (loggedId) setCurrentLoggedUserId(Number(loggedId));
-      if (storedUserType) setUserTypeId(storedUserType);
 
       const effectiveUserId = targetUserId || loggedId;
       if (!effectiveUserId) return;
@@ -149,22 +146,9 @@ export default function ProfileScreen({ route, navigation, onLogout }) {
           </View>
         </View>
 
-        {/* Botão de Painel de Administração visível apenas para administradores */}
-        {isOwnProfile && userTypeId === '2' && (
-          <View style={styles.actionRow}>
-            <TouchableOpacity 
-              style={styles.adminButton}
-              onPress={() => navigation.navigate('AdminDashboard')}
-            >
-              <Ionicons name="shield-checkmark-outline" size={18} color="#fff" style={{ marginRight: 6 }} />
-              <Text style={styles.adminButtonText}>{t('adminDashboardBtn')}</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-
         {/* Botão de Terminar Sessão apenas visível no perfil do próprio */}
         {isOwnProfile && onLogout && (
-          <View style={[styles.actionRow, { marginTop: userTypeId === '2' ? 8 : 0 }]}>
+          <View style={styles.actionRow}>
             <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
               <Ionicons name="log-out-outline" size={18} color="#dc3545" style={{ marginRight: 6 }} />
               <Text style={styles.logoutButtonText}>{t('logout')}</Text>
@@ -363,24 +347,6 @@ const styles = StyleSheet.create({
     alignItems: 'center' 
   },
 
-  adminButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    backgroundColor: '#2e7d32',
-    width: '100%',
-    marginBottom: 4
-  },
-
-  adminButtonText: { 
-    color: '#fff', 
-    fontSize: 14, 
-    fontWeight: '700' 
-  },
-
   logoutButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -505,5 +471,4 @@ const styles = StyleSheet.create({
     fontSize: 14, 
     marginTop: 8 
   }
-  
 });

@@ -26,6 +26,11 @@
           "photosPermission": "A aplicação necessita de aceder às tuas fotos para publicar anúncios."
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "ef831c70-da66-411d-acf6-f8f003f2844b"
+      }
+    }
   }
 }

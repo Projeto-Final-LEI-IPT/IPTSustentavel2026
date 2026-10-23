@@ -17,7 +17,6 @@ import ConversationsScreen from './screens/ConversationsScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import { LanguageProvider, useLanguage } from './context/LanguageContext';
 import LanguageSelectModal from './components/LanguageSelectModal';
-import AdminDashboardScreen from './screens/AdminDashboardScreen';
 import api from './services/api';
 
 function EmptyScreen() {
@@ -299,16 +298,6 @@ function AppNavigator() {
               component={ProfileScreen}
               options={{
                 title: t('userProfile') || 'Perfil',
-                headerStyle: { backgroundColor: '#2e7d32' },
-                headerTintColor: '#fff',
-                headerTitleStyle: { fontWeight: '700' },
-              }}
-            />
-            <Stack.Screen
-              name="AdminDashboard"
-              component={AdminDashboardScreen}
-              options={{
-                title: 'Painel de Administração',
                 headerStyle: { backgroundColor: '#2e7d32' },
                 headerTintColor: '#fff',
                 headerTitleStyle: { fontWeight: '700' },
