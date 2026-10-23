@@ -1,0 +1,355 @@
+
+* {
+  box-sizing: border-box;
+}
+
+body, html {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+.backoffice-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #f8f9fa;
+  z-index: 1000;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  overflow-x: hidden;
+}
+
+.backoffice-dashboard-layout {
+  display: flex;
+  height: 100vh;
+  background: #ffffff;
+}
+
+/* Sidebar Styles */
+.backoffice-sidebar {
+  width: 280px;
+  background: #2c3e50;
+  color: #ffffff;
+  padding: 25px 15px;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid #34495e;
+}
+
+.backoffice-sidebar-header {
+  padding: 15px 20px;
+  margin-bottom: 30px;
+  border-bottom: 1px solid #405672;
+}
+
+.backoffice-sidebar-title {
+  font-size: 1.4rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.backoffice-logo-icon {
+  font-size: 1.8rem;
+}
+
+.backoffice-nav-menu {
+  flex: 1;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.backoffice-nav-item {
+  padding: 14px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  transition: all 0.2s ease;
+  font-size: 0.95rem;
+}
+
+.backoffice-nav-item:hover {
+  background: #34495e;
+}
+
+.backoffice-nav-item.active {
+  background: #3498db;
+  font-weight: 500;
+}
+
+
+.backoffice-main-content {
+  flex: 1;
+  padding: 35px 40px;
+  overflow-y: auto;
+  position: relative;
+  background: #f8f9fa;
+}
+
+.backoffice-content-section {
+  background: white;
+  border-radius: 10px;
+  padding: 25px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  margin-bottom: 20px;
+}
+
+.backoffice-content-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding: 20px;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.backoffice-content-title {
+  font-size: 2rem;
+  color: #2c3e50;
+  margin: 0;
+}
+
+
+.backoffice-vertical-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.backoffice-vertical-card {
+  background: #ffffff;
+  border: 1px solid #e9ecef;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  transition: transform 0.2s;
+}
+
+.backoffice-vertical-card:hover {
+  transform: translateY(-2px);
+}
+
+.backoffice-card-item {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+  padding: 15px 0;
+}
+
+.backoffice-card-item div {
+  padding: 8px 0;
+  color: #4a5568;
+}
+
+.backoffice-card-item strong {
+  color: #2c3e50;
+  display: block;
+  margin-bottom: 4px;
+  font-weight: 500;
+}
+
+
+.backoffice-vertical-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 15px;
+  flex-wrap: wrap;
+}
+
+.backoffice-btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.backoffice-btn-edit {
+  background: #3498db;
+  color: white;
+}
+
+.backoffice-btn-edit:hover {
+  background: #2980b9;
+}
+
+.backoffice-btn-delete {
+  background: #e74c3c;
+  color: white;
+}
+
+.backoffice-btn-delete:hover {
+  background: #c0392b;
+}
+
+
+.backoffice-sidebar-footer {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.backoffice-logout-btn {
+  width: 100%;
+  padding: 15px;
+  border-radius: 8px;
+}
+
+
+@media (max-width: 1200px) {
+  .backoffice-sidebar {
+    width: 240px;
+  }
+  
+  .backoffice-main-content {
+    padding: 25px;
+  }
+}
+
+@media (max-width: 992px) {
+  .backoffice-content-title {
+    font-size: 1.6rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .backoffice-dashboard-layout {
+    flex-direction: column;
+    overflow-x: hidden;
+    width: 100%;
+  }
+  
+  .backoffice-sidebar {
+    width: 100%;
+    height: auto;
+    padding: 15px;
+  }
+  
+  .backoffice-nav-menu {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-around;
+  }
+  
+  .backoffice-nav-item {
+    padding: 15px;
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+  
+  /* Ajuste dos ícones no modo mobile */
+  .backoffice-nav-item svg {
+    font-size: 1.5rem; /* Aumenta o tamanho dos ícones */
+    margin: 0 auto; /* Centraliza horizontalmente */
+  }
+  
+  .backoffice-nav-item span {
+    display: none;
+  }
+  
+  /* Ajuste do sidebar footer */
+  .backoffice-sidebar-footer {
+    flex-direction: row;
+    width: 100%;
+    padding: 10px 0;
+    gap: 10px;
+    justify-content: space-between;
+  }
+  
+  .backoffice-logout-btn {
+    width: auto;
+    flex: 1;
+    font-size: 0.9rem;
+    padding: 10px;
+  }
+  
+  .backoffice-main-content {
+    padding: 15px;
+    margin-top: 10px;
+    width: 100%;
+    overflow-x: hidden;
+  }
+  
+  /* Garantir que os elementos de conteúdo não criam overflow */
+  .backoffice-content-section,
+  .backoffice-content-header,
+  .backoffice-filters-container {
+    padding: 15px;
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .backoffice-card-item {
+    grid-template-columns: 1fr;
+  }
+  
+  .backoffice-vertical-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .backoffice-btn {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .backoffice-sidebar-footer {
+    flex-direction: column;
+  }
+  
+  .backoffice-logout-btn {
+    width: 100%;
+  }
+  
+  /* Aumentar ainda mais os ícones em telas muito pequenas */
+  .backoffice-nav-item svg {
+    font-size: 1.7rem;
+  }
+  
+  /* Melhorar o espaçamento na navegação */
+  .backoffice-nav-item {
+    padding: 12px 8px;
+  }
+}
+
+
+.backoffice-filters-container {
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  margin-bottom: 25px;
+}
+
+.backoffice-filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 15px 0;
+}
+
+.backoffice-filter-select {
+  padding: 10px 15px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  background: #ffffff;
+  width: 200px;
+  font-size: 0.95rem;
+}
