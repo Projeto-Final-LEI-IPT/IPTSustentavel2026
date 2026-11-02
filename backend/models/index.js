@@ -13,7 +13,14 @@ const sequelize = new Sequelize(
   dbConfig.password,
   {
     host: dbConfig.host,
-    dialect: dbConfig.dialect
+    port: dbConfig.port || process.env.DB_PORT || 24714,
+    dialect: dbConfig.dialect,
+    dialectOptions: dbConfig.dialectOptions || {
+      ssl: {
+        require: true,
+        rejectUnauthorized: false
+      }
+    }
   }
 );
 // Adiciona a biblioteca Sequelize e a instância de conexão ao objeto db
