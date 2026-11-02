@@ -12,7 +12,7 @@ const dbSettings = {
   // Define o endereço do servidor da base de dados a partir da variável de ambiente DB_HOST
   host: process.env.DB_HOST,
   // Define a porta do servidor da base de dados a partir da variável de ambiente DB_PORT, ou utiliza 3306 como valor padrão
-  port: process.env.DB_PORT || 3306,
+  port: process.env.DB_PORT || 24714,
   // Especifica que o dialeto SQL a ser utilizado é MySQL
   dialect: 'mysql',
   dialectOptions: {
